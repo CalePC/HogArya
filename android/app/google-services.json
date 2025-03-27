@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "108366491001",
+    "project_id": "house-help-app",
+    "storage_bucket": "house-help-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:108366491001:android:189af1e1ba27eb627bd3a8",
+        "android_client_info": {
+          "package_name": "com.example.house_help"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR2SxFJb2VrKqORORFVWJkQERNbc6Di68"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
