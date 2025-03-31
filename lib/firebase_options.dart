@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'house-help-app.firebasestorage.app',
     iosBundleId: 'com.example.houseHelp',
   );
+
 }
