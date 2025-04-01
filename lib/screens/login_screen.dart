@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'register_account_screen.dart';
+import 'register_profile_screen.dart';
+import 'contractor_screen.dart';
+import 'helper_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
 
   bool isFormFilled = false;
+  String error = '';
 
   @override
   void initState() {
@@ -28,40 +34,58 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void loginUser() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-
+  Future<void> loginUser() async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
-      // Éxito: Navegar o mostrar mensaje
-      print('✅ Usuario autenticado');
-      // Navigator.push(...); // navega a tu pantalla principal
+      final uid = credential.user!.uid;
+      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+      final role = doc['rol'];
 
-    } on FirebaseAuthException catch (e) {
-      String message = 'Error desconocido';
-      if (e.code == 'user-not-found') {
-        message = 'Usuario no registrado';
-      } else if (e.code == 'wrong-password') {
-        message = 'Contraseña incorrecta';
-      } else if (e.code == 'invalid-email') {
-        message = 'Correo inválido';
+      if (context.mounted) {
+        if (role == 'helper') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HelperScreen()),
+          );
+        } else if (role == 'contractor') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const ContractorScreen()),
+          );
+        } else {
+          setState(() => error = 'Rol desconocido.');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+        }
       }
-
-      // Mostrar error
+    } on FirebaseAuthException catch (e) {
+      setState(() => error = e.message ?? 'Error al iniciar sesión');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+        SnackBar(content: Text(error)),
       );
     }
   }
 
   void goToRegister() {
-    print('➡️ Navegar a registro');
-    // Navigator.push(...);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterAccountScreen()),
+    ).then((result) {
+      if (result != null && result is Map<String, dynamic>) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const RegisterProfileScreen(),
+            settings: RouteSettings(arguments: result),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -77,7 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // 🎨 Fondo con degradado solo abajo
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -94,8 +117,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-
-          // 🧱 Contenido principal
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -104,8 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
-
-                    // 🏠 Logo
                     Transform.translate(
                       offset: const Offset(0, -50.0),
                       child: Image.asset(
@@ -114,8 +133,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-
-                    // 🧑 Usuario
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -125,20 +142,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 5),
                     _buildTextField(emailController, false),
-
                     const SizedBox(height: 20),
-
-                    // 🔒 Contraseña
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text('Contraseña', style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 5),
                     _buildTextField(passwordController, true),
-
                     const SizedBox(height: 60),
-
-                    // ✅ Botón "Iniciar sesión"
                     GestureDetector(
                       onTap: isFormFilled ? loginUser : null,
                       child: Container(
@@ -161,10 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-
-                    // 📝 Botón "Registrarse"
                     GestureDetector(
                       onTap: goToRegister,
                       child: Container(
@@ -185,7 +193,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -197,7 +204,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // 🔤 Campo reutilizable
   Widget _buildTextField(TextEditingController controller, bool isPassword) {
     return Container(
       decoration: BoxDecoration(
