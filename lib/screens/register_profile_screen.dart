@@ -39,6 +39,7 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
       'edad': age,
       'email': email,
       'password': password,
+      'tiene_contrato': false, // Default to false
     });
 
     if (!mounted) return;
@@ -57,6 +58,7 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
       );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
