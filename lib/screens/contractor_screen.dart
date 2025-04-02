@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:house_help/screens/request_screen.dart';
 import 'helper_screen.dart';
 
 class ContractorScreen extends StatelessWidget {
@@ -23,10 +24,14 @@ class ContractorScreen extends StatelessWidget {
         }
 
         if (!snapshot.hasData || !snapshot.data!) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Pantalla Cliente')),
-            body: const Center(child: Text('Aún no has contratado a un ayudante')),
-          );
+          // Si no tiene contrato, redirige a la pantalla de solicitud
+          Future.delayed(Duration.zero, () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const RequestScreen()), // Redirige a la pantalla de solicitud
+            );
+          });
+          return const Center(child: CircularProgressIndicator()); // Muestra un indicador mientras se redirige
         }
 
         return Scaffold(

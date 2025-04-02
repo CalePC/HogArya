@@ -72,11 +72,11 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
           children: [
             const Text('Selecciona tu rol:'),
             ElevatedButton(
-              onPressed: () => setState(() => selectedRole = 'ayudante'),
+              onPressed: () => setState(() => selectedRole = 'helper'),
               child: const Text('Ayudante'),
             ),
             ElevatedButton(
-              onPressed: () => setState(() => selectedRole = 'necesita_ayuda'),
+              onPressed: () => setState(() => selectedRole = 'contractor'),
               child: const Text('Necesito ayuda'),
             ),
             const SizedBox(height: 20),
