@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:house_help/screens/helper_screen.dart';
 import 'contractor_screen.dart';
-import 'helper_screen.dart';
 
 class RegisterProfileScreen extends StatefulWidget {
   const RegisterProfileScreen({super.key});
@@ -39,7 +37,6 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
       'edad': age,
       'email': email,
       'password': password,
-      'tiene_contrato': false, // Default to false
     });
 
     if (!mounted) return;
@@ -59,7 +56,6 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -72,11 +68,11 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
           children: [
             const Text('Selecciona tu rol:'),
             ElevatedButton(
-              onPressed: () => setState(() => selectedRole = 'helper'),
+              onPressed: () => setState(() => selectedRole = 'ayudante'),
               child: const Text('Ayudante'),
             ),
             ElevatedButton(
-              onPressed: () => setState(() => selectedRole = 'contractor'),
+              onPressed: () => setState(() => selectedRole = 'necesita_ayuda'),
               child: const Text('Necesito ayuda'),
             ),
             const SizedBox(height: 20),

@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'register_account_screen.dart';
 import 'register_profile_screen.dart';
+import 'package:flutter/services.dart';
 import 'contractor_screen.dart';
 import 'helper_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,10 +21,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isFormFilled = false;
   String error = '';
+  Color _buttonColor = const Color(0xFF4ABAFF); // Color inicial
 
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
+       statusBarColor: Colors.black,));
     emailController.addListener(checkForm);
     passwordController.addListener(checkForm);
   }
@@ -42,7 +48,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final uid = credential.user!.uid;
-      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(uid)
+          .get();
       final role = doc['rol'];
 
       if (context.mounted) {
@@ -92,6 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     super.dispose();
   }
 
@@ -151,13 +161,31 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildTextField(passwordController, true),
                     const SizedBox(height: 60),
                     GestureDetector(
+                      onTapDown: (_) {
+                        // Cambiar color cuando el botón está siendo presionado
+                        setState(() {
+                          _buttonColor = const Color(0xFF82C5FF); // Color azul claro
+                        });
+                      },
+                      onTapUp: (_) {
+                        // Cambiar color cuando el botón se suelta
+                        setState(() {
+                          _buttonColor = const Color(0xFF4ABAFF); // Volver al color original
+                        });
+                      },
+                      onTapCancel: () {
+                        // Asegurarse de que vuelva al color original si el tap es cancelado
+                        setState(() {
+                          _buttonColor = const Color(0xFF4ABAFF);
+                        });
+                      },
                       onTap: isFormFilled ? loginUser : null,
                       child: Container(
                         width: 150,
                         height: 50,
                         decoration: BoxDecoration(
                           color: isFormFilled
-                              ? const Color(0xFF4ABAFF)
+                              ? _buttonColor
                               : const Color(0xFFEDEDED),
                           borderRadius: BorderRadius.circular(30),
                         ),
@@ -207,8 +235,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildTextField(TextEditingController controller, bool isPassword) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.grey[800]!),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: TextField(
