@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:house_help/screens/request_screen.dart'; // Asegúrate de importar esta pantalla
 
 class SummaryScreen extends StatefulWidget {
   const SummaryScreen({super.key});
@@ -26,8 +27,17 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   Future<void> deleteRequest(String id) async {
-    await FirebaseFirestore.instance.collection('solicitudes').doc(id).delete();
-    setState(() {}); // Refresh UI
+    try {
+      await FirebaseFirestore.instance.collection('solicitudes').doc(id).delete();
+      setState(() {}); // Refresh UI
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Solicitud eliminada exitosamente")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al eliminar la solicitud: $e")),
+      );
+    }
   }
 
   @override
@@ -51,10 +61,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
             itemBuilder: (context, index) {
               final req = requests[index];
 
-              final cuidados = (req['tasks']['cuidados'] as List).join(", ");
-              final hogar = (req['tasks']['hogar'] as List).join(", ");
-              final start = req['fecha_inicio']?.substring(0, 10) ?? '';
-              final end = req['fecha_fin']?.substring(0, 10) ?? '';
+              // Asegúrate de que los campos que pueden ser null tengan un valor predeterminado
+              final cuidados = (req['tasks']['cuidados'] as List?)?.join(", ") ?? 'No hay tareas';
+              final hogar = (req['tasks']['hogar'] as List?)?.join(", ") ?? 'No hay tareas';
+              final start = req['fecha_inicio']?.substring(0, 10) ?? 'No disponible';
+              final end = req['fecha_fin']?.substring(0, 10) ?? 'No disponible';
+              final periodicidadPago = req['periodicidad_pago'] ?? 'No especificado';
+              final cantidadPago = req['cantidad_pago'] ?? 0.0;
 
               return Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -92,10 +105,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text("Periodicidad", style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text(req['periodicidad_pago']),
+                              Text(periodicidadPago),
                               const SizedBox(height: 5),
                               const Text("Pago", style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text("\$${req['cantidad_pago']}"),
+                              Text("\$${cantidadPago}"),
                             ],
                           )
                         ],
@@ -106,7 +119,13 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              // TODO: Navegar a pantalla de edición
+                              // Redirige a la pantalla de RequestScreen para editar la solicitud
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => RequestScreen(editingRequest: req), // Pasamos la solicitud para editarla
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
                             child: const Text("Editar"),
@@ -140,7 +159,12 @@ class _SummaryScreenState extends State<SummaryScreen> {
         padding: const EdgeInsets.all(10),
         child: ElevatedButton(
           onPressed: () {
-            Navigator.pushNamed(context, '/request'); // ruta de tu pantalla para crear solicitud
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const RequestScreen(), // Navega a RequestScreen para crear una nueva solicitud
+              ),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blueAccent,
@@ -153,3 +177,4 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 }
+

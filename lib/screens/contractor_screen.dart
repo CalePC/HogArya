@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:house_help/screens/request_screen.dart';
+import 'package:house_help/screens/summary_screen.dart';
 import 'helper_screen.dart';
 
 class ContractorScreen extends StatelessWidget {
@@ -28,7 +29,7 @@ class ContractorScreen extends StatelessWidget {
           Future.delayed(Duration.zero, () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const RequestScreen()), // Redirige a la pantalla de solicitud
+              MaterialPageRoute(builder: (_) => const SummaryScreen()), // Redirige a la pantalla de solicitud
             );
           });
           return const Center(child: CircularProgressIndicator()); // Muestra un indicador mientras se redirige

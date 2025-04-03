@@ -7,7 +7,9 @@ import 'summary_screen.dart';
 class AdditionalDetailsScreen extends StatefulWidget {
   final Map<String, List<String>> tasks;
 
-  const AdditionalDetailsScreen({super.key, required this.tasks});
+  const AdditionalDetailsScreen({super.key, required this.tasks, Map<String, dynamic>? editingRequest});
+
+  get editingRequest => null;
 
   @override
   State<AdditionalDetailsScreen> createState() => _AdditionalDetailsScreenState();
@@ -26,23 +28,37 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
   void submitFullRequest() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
-    await FirebaseFirestore.instance.collection('solicitudes').add({
+    final tasks = widget.tasks;
+    final solicitudData = {
       'uid': uid,
-      'tasks': widget.tasks,
+      'tasks': tasks,
       'tiene_contrato': false,
       'periodicidad_pago': selectedPeriod,
       'cantidad_pago': double.tryParse(amountController.text) ?? 0,
       'fecha_inicio': startDate?.toIso8601String(),
       'fecha_fin': endDate?.toIso8601String(),
-    });
+    };
+
+    if (widget.editingRequest == null) {
+      // Si no estamos editando, creamos una nueva solicitud
+      await FirebaseFirestore.instance.collection('solicitudes').add(solicitudData);
+    } else {
+      // Si estamos editando, actualizamos la solicitud existente
+      await FirebaseFirestore.instance
+          .collection('solicitudes')
+          .doc(widget.editingRequest!['id'])
+          .update(solicitudData);
+    }
 
     if (!mounted) return;
 
+    // Redirigir a la pantalla de resumen después de crear o actualizar la solicitud
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const SummaryScreen()),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {

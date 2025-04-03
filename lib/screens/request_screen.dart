@@ -65,35 +65,31 @@ class _RequestScreenState extends State<RequestScreen> with SingleTickerProvider
   }
 
   void submitRequest() async {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
     final tasks = {
       'cuidados': cuidadosTasks,
       'hogar': hogarTasks,
     };
 
     if (widget.editingRequest == null) {
-      // Si no estamos editando, creamos una nueva solicitud
-      await FirebaseFirestore.instance.collection('solicitudes').add({
-        'uid': uid,
-        'tasks': tasks,
-        'tiene_contrato': false, // As no helper is assigned yet
-      });
+      // Si no estamos editando, pasamos las tareas a la siguiente pantalla
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(tasks: tasks)),
+      );
     } else {
-      // Si estamos editando, actualizamos la solicitud existente
-      await FirebaseFirestore.instance
-          .collection('solicitudes')
-          .doc(widget.editingRequest!['id'])
-          .update({
-        'tasks': tasks,
-      });
+      // Si estamos editando, pasamos la solicitud completa a la siguiente pantalla
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdditionalDetailsScreen(
+            tasks: tasks,
+            editingRequest: widget.editingRequest, // Pasamos la solicitud para editarla
+          ),
+        ),
+      );
     }
-
-    // Navegar a la siguiente pantalla para más detalles
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(tasks: tasks)),
-    );
   }
+
 
   @override
   Widget build(BuildContext context) {
