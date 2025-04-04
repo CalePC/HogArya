@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:house_help/screens/request_screen.dart'; // Asegúrate de importar esta pantalla
+import 'package:house_help/screens/contractor/request_screen.dart'; // Asegúrate de importar esta pantalla
 
 class SummaryScreen extends StatefulWidget {
   const SummaryScreen({super.key});
@@ -108,7 +108,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               Text(periodicidadPago),
                               const SizedBox(height: 5),
                               const Text("Pago", style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text("\$${cantidadPago}"),
+                              Text("\$$cantidadPago"),
                             ],
                           )
                         ],

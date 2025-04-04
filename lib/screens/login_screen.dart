@@ -4,8 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'register_account_screen.dart';
 import 'register_profile_screen.dart';
 import 'package:flutter/services.dart';
-import 'contractor_screen.dart';
-import 'helper_screen.dart';
+import 'contractor/contractor_screen.dart';
+import 'helper/helper_screen.dart';
+import 'super/super_user_screen.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool isFormFilled = false;
   String error = '';
-  Color _buttonColor = const Color(0xFF4ABAFF); // Color inicial
+  Color _buttonColor = const Color(0xFF4ABAFF);
 
   @override
   void initState() {
@@ -65,6 +66,11 @@ class _LoginScreenState extends State<LoginScreen> {
             context,
             MaterialPageRoute(builder: (_) => const ContractorScreen()),
           );
+        } else if (role == 'super') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const SuperUserScreen()),
+        );
         } else {
           setState(() => error = 'Rol desconocido.');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -248,5 +254,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
+  } 
 }

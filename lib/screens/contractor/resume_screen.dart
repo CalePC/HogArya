@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:house_help/screens/resume_screen.dart';  // Pantalla 2
-import 'package:house_help/screens/helpers_screen.dart'; // Pantalla 3
-import 'package:house_help/screens/summary_screen.dart';
+// Pantalla 2
+import 'package:house_help/screens/helper/helpers_screen.dart';
+import 'package:house_help/screens/contractor/summary_screen.dart'; // Pantalla 3
 
-class HelpersScreen extends StatelessWidget {
-  const HelpersScreen({super.key});
+class ResumeScreen extends StatelessWidget {
+  const ResumeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Ayudantes")),
-      body: const Center(child: Text("Lista de ayudantes disponibles")),
+      appBar: AppBar(title: const Text("Resumen")),
+      body: const Center(child: Text("Resumen de solicitudes")),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

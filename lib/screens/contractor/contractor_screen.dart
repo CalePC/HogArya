@@ -1,9 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:house_help/screens/request_screen.dart';
-import 'package:house_help/screens/summary_screen.dart';
-import 'helper_screen.dart';
+import 'package:house_help/screens/contractor/summary_screen.dart';
 
 class ContractorScreen extends StatelessWidget {
   const ContractorScreen({super.key});
