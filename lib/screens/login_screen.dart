@@ -5,7 +5,7 @@ import 'register_account_screen.dart';
 import 'register_profile_screen.dart';
 import 'package:flutter/services.dart';
 import 'contractor/contractor_screen.dart';
-import 'helper/helper_screen.dart';
+import 'helper/helpers_screen.dart';
 import 'super/super_user_screen.dart';
 
 
@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (role == 'helper') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const HelperScreen()),
+            MaterialPageRoute(builder: (_) => const HelpersScreen()),
           );
         } else if (role == 'contractor') {
           Navigator.pushReplacement(
@@ -168,19 +168,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 60),
                     GestureDetector(
                       onTapDown: (_) {
-                        // Cambiar color cuando el botón está siendo presionado
+                        // Color de botón al persionar
                         setState(() {
-                          _buttonColor = const Color(0xFF82C5FF); // Color azul claro
+                          _buttonColor = const Color(0xFF82C5FF);
                         });
                       },
                       onTapUp: (_) {
-                        // Cambiar color cuando el botón se suelta
+                       
                         setState(() {
-                          _buttonColor = const Color(0xFF4ABAFF); // Volver al color original
+                          _buttonColor = const Color(0xFF4ABAFF);
                         });
                       },
                       onTapCancel: () {
-                        // Asegurarse de que vuelva al color original si el tap es cancelado
                         setState(() {
                           _buttonColor = const Color(0xFF4ABAFF);
                         });

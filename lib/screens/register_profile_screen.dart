@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:house_help/screens/helper/helper_screen.dart';
+import 'package:house_help/screens/helper/helpers_screen.dart';
 import 'contractor/contractor_screen.dart';
 
 class RegisterProfileScreen extends StatefulWidget {
@@ -44,7 +44,7 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
     if (selectedRole == 'ayudante') {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const HelperScreen()),
+        MaterialPageRoute(builder: (_) => const HelpersScreen()),
             (route) => false,
       );
     } else {
