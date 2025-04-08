@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:house_help/screens/contractor/request_screen.dart'; // Asegúrate de importar esta pantalla
+import 'package:house_help/screens/contractor/request_screen.dart';
 
 class SummaryScreen extends StatefulWidget {
   const SummaryScreen({super.key});
@@ -26,16 +26,29 @@ class _SummaryScreenState extends State<SummaryScreen> {
     }).toList();
   }
 
+  Future<List<Map<String, dynamic>>> fetchPostulaciones(String solicitudId) async {
+    final query = await FirebaseFirestore.instance
+        .collection('postulaciones')
+        .where('solicitudId', isEqualTo: solicitudId)
+        .get();
+
+    return query.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id;
+      return data;
+    }).toList();
+  }
+
   Future<void> deleteRequest(String id) async {
     try {
       await FirebaseFirestore.instance.collection('solicitudes').doc(id).delete();
-      setState(() {}); // Refresh UI
+      setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Solicitud eliminada exitosamente")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al eliminar la solicitud: $e")),
+        SnackBar(content: Text("Error al eliminar la solicitud: \$e")),
       );
     }
   }
@@ -60,8 +73,6 @@ class _SummaryScreenState extends State<SummaryScreen> {
             itemCount: requests.length,
             itemBuilder: (context, index) {
               final req = requests[index];
-
-              // Asegúrate de que los campos que pueden ser null tengan un valor predeterminado
               final cuidados = (req['tasks']['cuidados'] as List?)?.join(", ") ?? 'No hay tareas';
               final hogar = (req['tasks']['hogar'] as List?)?.join(", ") ?? 'No hay tareas';
               final start = req['fecha_inicio']?.substring(0, 10) ?? 'No disponible';
@@ -119,11 +130,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              // Redirige a la pantalla de RequestScreen para editar la solicitud
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => RequestScreen(editingRequest: req), // Pasamos la solicitud para editarla
+                                  builder: (_) => RequestScreen(editingRequest: req),
                                 ),
                               );
                             },
@@ -131,10 +141,82 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             child: const Text("Editar"),
                           ),
                           ElevatedButton(
-                            onPressed: () {
-                              // Mostrar número de solicitudes recibidas
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Tienes 2 solicitudes")),
+                            onPressed: () async {
+                              final postulaciones = await fetchPostulaciones(req['id']);
+
+                              if (postulaciones.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Aún no hay postulaciones.")),
+                                );
+                                return;
+                              }
+
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: ListView.builder(
+                                      itemCount: postulaciones.length,
+                                      itemBuilder: (context, index) {
+                                        final post = postulaciones[index];
+                                        return Card(
+                                          child: ListTile(
+                                            title: FutureBuilder<DocumentSnapshot>(
+                                              future: FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(post['helperId'])
+                                                  .get(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  return const Text("Cargando nombre...");
+                                                } else if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                                                  return const Text("Nombre no disponible");
+                                                }
+
+                                                final name = snapshot.data!.get('nombre') ?? 'Sin nombre';
+                                                return Text(name, style: const TextStyle(fontWeight: FontWeight.bold));
+                                              },
+                                            ),
+                                            subtitle: Text("Contraoferta: \$\${post['contraoferta']}"),
+                                            trailing: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.check, color: Colors.green),
+                                                  onPressed: () async {
+                                                    await FirebaseFirestore.instance
+                                                        .collection('postulaciones')
+                                                        .doc(post['id'])
+                                                        .update({'estado': 'aceptado'});
+                                                    Navigator.pop(context);
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Postulación aceptada')),
+                                                    );
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.close, color: Colors.red),
+                                                  onPressed: () async {
+                                                    await FirebaseFirestore.instance
+                                                        .collection('postulaciones')
+                                                        .doc(post['id'])
+                                                        .update({'estado': 'rechazado'});
+                                                    Navigator.pop(context);
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Postulación rechazada')),
+                                                    );
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                               );
                             },
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow.shade600),
@@ -162,7 +244,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const RequestScreen(), // Navega a RequestScreen para crear una nueva solicitud
+                builder: (_) => const RequestScreen(),
               ),
             );
           },
@@ -177,4 +259,3 @@ class _SummaryScreenState extends State<SummaryScreen> {
     );
   }
 }
-
