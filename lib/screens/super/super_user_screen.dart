@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 class SuperUserScreen extends StatelessWidget {
   const SuperUserScreen({super.key});
 
-  
   Future<void> logoutUser(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();

@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class RequestsDetailsScreen extends StatefulWidget {
   final String requestId;
 
-  const RequestsDetailsScreen({Key? key, required this.requestId}) : super(key: key);
+  const RequestsDetailsScreen({super.key, required this.requestId});
 
   @override
   _RequestDetailsScreenState createState() => _RequestDetailsScreenState();

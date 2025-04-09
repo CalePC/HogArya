@@ -22,7 +22,6 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
   DateTime? startDate;
   DateTime? endDate;
 
-  CalendarFormat calendarFormat = CalendarFormat.month;
   RangeSelectionMode rangeSelectionMode = RangeSelectionMode.toggledOn;
 
   void submitFullRequest() async {
@@ -40,10 +39,10 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
     };
 
     if (widget.editingRequest == null) {
-      // Si no estamos editando, creamos una nueva solicitud
+      
       await FirebaseFirestore.instance.collection('solicitudes').add(solicitudData);
     } else {
-      // Si estamos editando, actualizamos la solicitud existente
+     
       await FirebaseFirestore.instance
           .collection('solicitudes')
           .doc(widget.editingRequest!['id'])
@@ -52,7 +51,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
 
     if (!mounted) return;
 
-    // Redirigir a la pantalla de resumen después de crear o actualizar la solicitud
+    
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const SummaryScreen()),
@@ -62,6 +61,9 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime futureLimit = DateTime(now.year + 5, 12, 31);
     return Scaffold(
       appBar: AppBar(title: const Text("Detalles adicionales")),
       body: Padding(
@@ -91,26 +93,29 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 prefixText: '\$ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: Colors.blue.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                filled: false,
               ),
             ),
             const SizedBox(height: 30),
 
-            const Text("¿Cuándo necesitarás esta ayuda?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text("¿Desde y hasta cuándo necesitarás esta ayuda?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
             TableCalendar(
-              focusedDay: DateTime.now(),
-              firstDay: DateTime.utc(2024, 1, 1),
-              lastDay: DateTime.utc(2030, 12, 31),
-              calendarFormat: calendarFormat,
-              onFormatChanged: (format) {
-                setState(() {
-                  calendarFormat = format;
-                });
+              locale: 'es_ES',
+              focusedDay: today,
+              firstDay: today, 
+              lastDay: futureLimit,
+              calendarFormat: CalendarFormat.month,
+              availableCalendarFormats: const {
+                CalendarFormat.month: 'Mes',
               },
-              rangeSelectionMode: rangeSelectionMode,
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+                titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              rangeSelectionMode: RangeSelectionMode.toggledOn,
               onRangeSelected: (start, end, _) {
                 setState(() {
                   startDate = start;
@@ -121,6 +126,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
               rangeStartDay: startDate,
               rangeEndDay: endDate,
             ),
+
             const SizedBox(height: 30),
 
             ElevatedButton(

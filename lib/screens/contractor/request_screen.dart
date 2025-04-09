@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'additional_details_screen.dart';
 
 class RequestScreen extends StatefulWidget {
-  final Map<String, dynamic>? editingRequest; // Solicitud a editar (opcional)
+  final Map<String, dynamic>? editingRequest;
 
   const RequestScreen({super.key, this.editingRequest});
 
@@ -22,13 +22,12 @@ class _RequestScreenState extends State<RequestScreen> with SingleTickerProvider
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Si estamos editando, cargar las tareas existentes
+   
     if (widget.editingRequest != null) {
       final request = widget.editingRequest!;
       cuidadosTasks = List<String>.from(request['tasks']['cuidados']);
       hogarTasks = List<String>.from(request['tasks']['hogar']);
 
-      // Inicializamos los botones de tareas existentes como agregados
       for (var task in cuidadosTasks) {
         addedCuidados[task] = true;
       }
@@ -69,19 +68,17 @@ class _RequestScreenState extends State<RequestScreen> with SingleTickerProvider
     };
 
     if (widget.editingRequest == null) {
-      // Si no estamos editando, pasamos las tareas a la siguiente pantalla
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => AdditionalDetailsScreen(tasks: tasks)),
       );
     } else {
-      // Si estamos editando, pasamos la solicitud completa a la siguiente pantalla
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => AdditionalDetailsScreen(
             tasks: tasks,
-            editingRequest: widget.editingRequest, // Pasamos la solicitud para editarla
+            editingRequest: widget.editingRequest, 
           ),
         ),
       );
@@ -105,7 +102,7 @@ class _RequestScreenState extends State<RequestScreen> with SingleTickerProvider
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Cuidados Tab
+         
           ListView(
             children: [
               ListTile(
@@ -162,7 +159,7 @@ class _RequestScreenState extends State<RequestScreen> with SingleTickerProvider
               ),
             ],
           ),
-          // Hogar Tab
+      
           ListView(
             children: [
               ListTile(
