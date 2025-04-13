@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // Pantalla 2
 import 'package:house_help/screens/helper/helpers_screen.dart';
-import 'package:house_help/screens/contractor/summary_screen.dart';
+import 'package:house_help/screens/contractor/desired_profiles.dart';
 
 class ResumeScreen extends StatelessWidget {
   const ResumeScreen({super.key});
@@ -32,7 +32,7 @@ class ResumeScreen extends StatelessWidget {
             case 0:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const SummaryScreen()), 
+                MaterialPageRoute(builder: (_) => const DesiredProfiles()), 
               );
               break;
             case 1:

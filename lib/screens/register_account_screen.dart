@@ -15,6 +15,21 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
 
   String error = '';
 
+  @override
+  void initState() {
+    super.initState();
+    emailController.addListener(() => setState(() {}));
+    passwordController.addListener(() => setState(() {}));
+    confirmController.addListener(() => setState(() {}));
+  }
+
+  bool isFormComplete() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    final confirm = confirmController.text.trim();
+    return email.isNotEmpty && password.isNotEmpty && confirm.isNotEmpty;
+  }
+
   void register() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -46,123 +61,143 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            colors: [
+              Colors.white,
+              Color(0xFFA4DCFF),
+              Color(0xFF4AB9FF),
+            ],
             stops: [0.78, 0.95, 1.0],
-            colors: [Colors.white, Color(0xFFA4DCFF), Color(0xFF4AB9FF)],
           ),
         ),
-        child: Stack(
-          children: [
-            Positioned(top: 30, left: 0, right: 0, height: 22, child: Container(color: Colors.black)),
-            const Positioned(
-              top: 71,
-              left: 16,
-              child: Text(
-                'Registro a HouSeHelp',
-                style: TextStyle(
-                  color: Color(0xFF4AB9FF),
-                  fontSize: 32,
-                  fontFamily: 'Instrument Sans',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const Positioned(
-              top: 143,
-              left: 0,
-              right: 0,
-              child: Divider(color: Color(0xFF4AB9FF), thickness: 3),
-            ),
-            Positioned(
-              top: 160,
-              left: 16,
-              right: 16,
-              bottom: 100,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Creemos  tu cuenta',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Instrument Sans',
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    const Text(
-                      '¿Cuál será tu correo?',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Instrument Sans',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInputField(controller: emailController),
-
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Por favor, crea una contraseña',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Instrument Sans',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInputField(controller: passwordController, obscureText: true),
-
-                    const SizedBox(height: 28),
-                    const Text(
-                      'Confirma tu contraseña',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'Instrument Sans',
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildInputField(controller: confirmController, obscureText: true),
-
-                    const SizedBox(height: 20),
-                    if (error.isNotEmpty)
-                      Text(error, style: const TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 32,
-              left: MediaQuery.of(context).size.width / 2 - 66.5,
-              child: GestureDetector(
-                onTap: register,
-                child: Container(
-                  width: 133,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(width: 1),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Continuar',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Instrument Sans',
-                      ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                  blendMode: BlendMode.srcIn,
+                  child: const Text(
+                    'Registro a HouSeHelp',
+                    style: TextStyle(
+                      fontFamily: 'Instrument Sans',
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                height: 3,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Creemos tu cuenta',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Instrument Sans',
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          '¿Cuál será tu correo?',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Instrument Sans',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildInputField(controller: emailController),
+                        const SizedBox(height: 28),
+                        const Text(
+                          'Por favor, crea una contraseña',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Instrument Sans',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildInputField(controller: passwordController, obscureText: true),
+                        const SizedBox(height: 28),
+                        const Text(
+                          'Confirma tu contraseña',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: 'Instrument Sans',
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _buildInputField(controller: confirmController, obscureText: true),
+                        const SizedBox(height: 20),
+                        if (error.isNotEmpty)
+                          Text(error, style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: GestureDetector(
+                  onTap: isFormComplete() ? register : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 133,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: isFormComplete() ? const Color(0xFF4AB9FF) : Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(width: 1),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Continuar',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Instrument Sans',
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );

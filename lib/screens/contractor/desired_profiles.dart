@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:house_help/screens/contractor/request_screen.dart';
+import 'package:house_help/screens/contractor/add_job_profile_screen.dart';
 
-class SummaryScreen extends StatefulWidget {
-  const SummaryScreen({super.key});
+class DesiredProfiles extends StatefulWidget {
+  const DesiredProfiles({super.key});
 
   @override
-  State<SummaryScreen> createState() => _SummaryScreenState();
+  State<DesiredProfiles> createState() => _DesiredProfilesState();
 }
 
-class _SummaryScreenState extends State<SummaryScreen> {
+class _DesiredProfilesState extends State<DesiredProfiles> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
 
   Future<List<Map<String, dynamic>>> fetchRequests() async {
@@ -133,7 +133,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => RequestScreen(editingRequest: req),
+                                  builder: (_) => AddJobProfileScreen(editingRequest: req),
                                 ),
                               );
                             },
@@ -244,7 +244,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const RequestScreen(),
+                builder: (_) => const AddJobProfileScreen(),
               ),
             );
           },

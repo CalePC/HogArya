@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'register_account_screen.dart';
 import 'register_profile_screen.dart';
 import 'package:flutter/services.dart';
-import 'contractor/contractor_screen.dart';
+import 'contractor/redirection_driver.dart';
 import 'helper/helpers_screen.dart';
 import 'super/super_user_screen.dart';
 
@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (role == 'contractor') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const ContractorScreen()),
+            MaterialPageRoute(builder: (_) => const RedirectionDriver()),
           );
         } else if (role == 'super') {
         Navigator.pushReplacement(

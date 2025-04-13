@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'additional_details_screen.dart';
 
-class RequestScreen extends StatefulWidget {
+class AddJobProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? editingRequest;
 
-  const RequestScreen({super.key, this.editingRequest});
+  const AddJobProfileScreen({super.key, this.editingRequest});
 
   @override
-  _RequestScreenState createState() => _RequestScreenState();
+  _AddJobProfileScreenState createState() => _AddJobProfileScreenState();
 }
 
-class _RequestScreenState extends State<RequestScreen> with SingleTickerProviderStateMixin {
+class _AddJobProfileScreenState extends State<AddJobProfileScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<String> cuidadosTasks = [];
   List<String> hogarTasks = [];

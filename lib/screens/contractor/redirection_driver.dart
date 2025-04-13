@@ -1,10 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:house_help/screens/contractor/summary_screen.dart';
+import 'package:house_help/screens/contractor/desired_profiles.dart';
 
-class ContractorScreen extends StatelessWidget {
-  const ContractorScreen({super.key});
+class RedirectionDriver extends StatelessWidget {
+  const RedirectionDriver({super.key});
 
   Future<bool> hasContract(String uid) async {
     final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
@@ -27,7 +27,7 @@ class ContractorScreen extends StatelessWidget {
           Future.delayed(Duration.zero, () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const SummaryScreen()), // Redirige a la pantalla de solicitud
+              MaterialPageRoute(builder: (_) => const DesiredProfiles()), // Redirige a la pantalla de solicitud
             );
           });
           return const Center(child: CircularProgressIndicator()); // Muestra un indicador mientras se redirige
