@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../login_screen.dart';
 import '../change_password_screen.dart';
 import '../../widgets/custom_header.dart';
+import '../helper/select_skills_screen.dart'; // 👈 Import agregado
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -71,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           if (!context.mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            (route) => false,
+                                (route) => false,
                           );
                         } catch (e) {
                           Navigator.of(context).pop();
@@ -110,6 +111,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showChangeEmailDialog() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cambiar correo electrónico'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Nuevo correo electrónico'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Contraseña actual'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                final newEmail = emailController.text.trim();
+                final password = passwordController.text.trim();
+
+                if (user != null && newEmail.isNotEmpty && password.isNotEmpty) {
+                  try {
+                    // Verificar si ya está en uso
+                    final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(newEmail);
+                    if (methods.isNotEmpty) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('El correo ya está en uso por otra cuenta.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Reautenticamos
+                    final credential = EmailAuthProvider.credential(
+                      email: user.email!,
+                      password: password,
+                    );
+                    await user.reauthenticateWithCredential(credential);
+
+                    // Enviamos verificación al nuevo correo
+                    await user.verifyBeforeUpdateEmail(newEmail);
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Correo de verificación enviado. Haz clic en el enlace del nuevo correo para confirmar el cambio.',
+                        ),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Enviar verificación'),
+            ),
+          ],
         );
       },
     );
@@ -197,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         if (!context.mounted) return;
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
+                              (route) => false,
                         );
                       },
                       style: ElevatedButton.styleFrom(
@@ -219,6 +309,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.redAccent)),
                   const SizedBox(height: 16),
+
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _showChangeEmailDialog,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orangeAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text("Cambiar correo electrónico"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
                   Center(
                     child: ElevatedButton(
                       onPressed: () {
@@ -240,6 +347,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  // 👉 Botón "Editar habilidades"
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SelectSkillsScreen(userData: {}),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text("Editar habilidades"),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
                   Center(
                     child: ElevatedButton(
                       onPressed: _confirmDeleteAccount,
@@ -264,3 +396,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
+

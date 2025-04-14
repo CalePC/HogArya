@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:house_help/screens/helper/helpers_screen.dart';
 import 'contractor/redirection_driver.dart';
+import 'helper/select_skills_screen.dart';
 
 class RegisterProfileScreen extends StatefulWidget {
   const RegisterProfileScreen({super.key});
@@ -47,8 +48,16 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
     if (selectedRole == 'helper') {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const HelpersScreen()),
-        (route) => false,
+        MaterialPageRoute(
+          builder: (_) => SelectSkillsScreen(userData: {
+            'uid': uid,
+            'nombre': name,
+            'sexo': selectedGender,
+            'edad': age,
+            'viveEnCoatzacoalcos': livesInCoatzacoalcos,
+          }),
+        ),
+            (route) => false,
       );
     } else {
       Navigator.pushAndRemoveUntil(
