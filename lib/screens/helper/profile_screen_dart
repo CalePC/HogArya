@@ -1,0 +1,235 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart'; 
+import 'package:firebase_auth/firebase_auth.dart';
+import '../login_screen.dart';
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.black,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Column(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  color: Colors.black,
+                  width: double.infinity,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: const Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: "HouSe",
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 30,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2D409B),
+                              ),
+                            ),
+                            TextSpan(
+                              text: "Help",
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 30,
+                                fontWeight: FontWeight.w300,
+                                color: Color(0xFF38A5D3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: ShaderMask(
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
+                            ).createShader(bounds),
+                            child: const Text(
+                              'Perfil',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 48),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Foto de perfil",
+                      style: TextStyle(
+                        color: Colors.indigo,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Center(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/PhotoBackground.svg',
+                            height: 140,
+                          ),
+      
+                          const CircleAvatar(
+                            radius: 48,
+                            backgroundImage: AssetImage('assets/images/avatar.png'),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.lightBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: const Icon(Icons.edit, color: Colors.white, size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+                    const Text(
+                      "Datos que se muestran",
+                      style: TextStyle(
+                        color: Colors.indigo,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text("Nombre: Carlos Pérez Gil"),
+                    const Text("Edad: 35"),
+                    const Text("Sexo: Masculino"),
+                    const Text("Ubicación parcial: Coatzacoalcos"),
+                    const SizedBox(height: 24),
+                    const Text(
+                      "Datos de acceso",
+                      style: TextStyle(
+                        color: Colors.indigo,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text("Correo: carlosperez@dominio.com"),
+                    const Text("Contraseña: ********"),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await FirebaseAuth.instance.signOut();
+                          if (!context.mounted) return;
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                            (route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                          side: const BorderSide(color: Colors.black),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text("Cerrar sesión"),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    const Text(
+                      "Acciones sobre la cuenta",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4ABAFF),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text("Cambiar contraseña"),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text("Eliminar Cuenta"),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:house_help/screens/helper/requests_details_screen.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:house_help/screens/helper/profile_screen_dart';
+//import 'package:house_help/screens/helper/requests_details_screen.dart';
 
 class HelpersScreen extends StatefulWidget {
   const HelpersScreen({Key? key}) : super(key: key);
@@ -32,8 +34,18 @@ class _HelpersScreenState extends State<HelpersScreen> {
         title: const Text('HouSeHelp'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {},
+            icon: SvgPicture.asset(
+              'assets/customProfile.svg',
+              height: 24,
+              width: 24,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
           ),
         ],
         backgroundColor: Colors.white,
