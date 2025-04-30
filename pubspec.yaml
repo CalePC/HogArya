@@ -42,6 +42,12 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_svg: ^2.0.17
+  image_picker: ^0.8.4+4
+  cloudinary_url_gen: ^1.0.0
+  cloudinary_api: ^1.0.0
+  cloudinary_public: ^0.23.1
+
+
 
 dev_dependencies:
   flutter_test:

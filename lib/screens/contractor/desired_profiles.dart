@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:house_help/screens/contractor/add_job_profile_screen.dart';
+import 'package:house_help/screens/contractor/contractor_resume_screen.dart';
 
 class DesiredProfiles extends StatefulWidget {
   const DesiredProfiles({super.key});
@@ -12,6 +13,7 @@ class DesiredProfiles extends StatefulWidget {
 
 class _DesiredProfilesState extends State<DesiredProfiles> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
+  int _currentIndex = 0;
 
   Future<List<Map<String, dynamic>>> fetchRequests() async {
     final query = await FirebaseFirestore.instance
@@ -39,16 +41,53 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
     }).toList();
   }
 
+  // Método para eliminar la solicitud y todas sus tareas asociadas
   Future<void> deleteRequest(String id) async {
     try {
+      // Eliminar todas las tareas asociadas a esta solicitud
+      final tasksSnapshot = await FirebaseFirestore.instance
+          .collection('tareas')
+          .where('solicitudId', isEqualTo: id)
+          .get();
+
+      for (var doc in tasksSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Eliminar la solicitud
       await FirebaseFirestore.instance.collection('solicitudes').doc(id).delete();
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Solicitud eliminada exitosamente")),
+        const SnackBar(content: Text("Solicitud y tareas eliminadas exitosamente")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al eliminar la solicitud: \$e")),
+        SnackBar(content: Text("Error al eliminar la solicitud: $e")),
+      );
+    }
+  }
+
+  Future<void> acceptPostulation(String postId, String helperId, String solicitudId) async {
+    try {
+      // Actualizar el estado de la postulación a "aceptado"
+      await FirebaseFirestore.instance.collection('postulaciones').doc(postId).update({'estado': 'aceptado'});
+
+      // Actualizar las tareas de la solicitud con el helperId
+      final tasksSnapshot = await FirebaseFirestore.instance
+          .collection('tareas')
+          .where('solicitudId', isEqualTo: solicitudId)
+          .get();
+
+      for (var doc in tasksSnapshot.docs) {
+        await doc.reference.update({'helperId': helperId});
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Postulación aceptada y tareas asignadas')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al aceptar la postulación: $e")),
       );
     }
   }
@@ -179,21 +218,16 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
                                                 return Text(name, style: const TextStyle(fontWeight: FontWeight.bold));
                                               },
                                             ),
-                                            subtitle: Text("Contraoferta: \$\${post['contraoferta']}"),
+                                            subtitle: Text("Contraoferta: \$${post['contraoferta']}"),
                                             trailing: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 IconButton(
                                                   icon: const Icon(Icons.check, color: Colors.green),
                                                   onPressed: () async {
-                                                    await FirebaseFirestore.instance
-                                                        .collection('postulaciones')
-                                                        .doc(post['id'])
-                                                        .update({'estado': 'aceptado'});
-                                                    Navigator.pop(context);
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('Postulación aceptada')),
-                                                    );
+                                                    // Aceptar la postulación
+                                                    await acceptPostulation(post['id'], post['helperId'], req['id']);
+                                                    Navigator.pop(context); // Cerrar el bottom sheet
                                                   },
                                                 ),
                                                 IconButton(
@@ -237,24 +271,29 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
           );
         },
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(10),
-        child: ElevatedButton(
-          onPressed: () {
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+          if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const AddJobProfileScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ContractorResumeScreen()),
             );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blueAccent,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: const Text("Crear", style: TextStyle(fontSize: 18)),
-        ),
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddJobProfileScreen()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Perfil de trabajo'),
+          BottomNavigationBarItem(icon: Icon(Icons.summarize), label: 'Resumen'),
+          BottomNavigationBarItem(icon: Icon(Icons.add_circle), label: 'Crear'),
+        ],
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
       ),
     );
   }

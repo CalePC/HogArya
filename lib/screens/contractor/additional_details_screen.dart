@@ -6,10 +6,9 @@ import 'desired_profiles.dart';
 
 class AdditionalDetailsScreen extends StatefulWidget {
   final Map<String, List<String>> tasks;
+  final Map<String, dynamic>? editingRequest; // Parámetro opcional para la edición
 
-  const AdditionalDetailsScreen({super.key, required this.tasks, Map<String, dynamic>? editingRequest});
-
-  get editingRequest => null;
+  const AdditionalDetailsScreen({super.key, required this.tasks, this.editingRequest});
 
   @override
   State<AdditionalDetailsScreen> createState() => _AdditionalDetailsScreenState();
@@ -24,6 +23,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
 
   RangeSelectionMode rangeSelectionMode = RangeSelectionMode.toggledOn;
 
+  // Método para enviar la solicitud
   void submitFullRequest() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
@@ -38,32 +38,62 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
       'fecha_fin': endDate?.toIso8601String(),
     };
 
+    // Si estamos editando, actualizamos la solicitud, si no, la creamos
     if (widget.editingRequest == null) {
-      
-      await FirebaseFirestore.instance.collection('solicitudes').add(solicitudData);
+      // Creación de nueva solicitud
+      final solicitudRef = await FirebaseFirestore.instance.collection('solicitudes').add(solicitudData);
+      _createTasksForDates(solicitudRef.id, tasks, uid);  // Crea las tareas para cada fecha
     } else {
-     
+      // Actualización de solicitud existente
       await FirebaseFirestore.instance
           .collection('solicitudes')
           .doc(widget.editingRequest!['id'])
           .update(solicitudData);
+      _createTasksForDates(widget.editingRequest!['id'], tasks, uid);  // Actualiza las tareas asociadas
     }
 
     if (!mounted) return;
 
-    
+    // Redirigir al perfil deseado después de enviar la solicitud
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const DesiredProfiles()),
     );
   }
 
+  // Método para crear o actualizar las tareas por fecha
+  Future<void> _createTasksForDates(String solicitudId, Map<String, List<String>> tasks, String uid) async {
+    DateTime current = DateTime(startDate!.year, startDate!.month, startDate!.day);
+    final lastDay = DateTime(endDate!.year, endDate!.month, endDate!.day);
+
+    while (!current.isAfter(lastDay)) {
+      for (final entry in tasks.entries) {
+        final tipo = entry.key; // 'hogar', 'cuidados', etc.
+        final tareaList = entry.value;
+
+        for (final descripcion in tareaList) {
+          await FirebaseFirestore.instance.collection('tareas').add({
+            'descripcion': descripcion,
+            'tipo': tipo,
+            'contratanteId': uid,
+            'solicitudId': solicitudId,
+            'fecha': Timestamp.fromDate(current),
+            'fecha_creacion': Timestamp.now(),
+            'imagen': '',  // Aquí puedes agregar la URL de la imagen más tarde
+            'helperId': '',  // Se asignará después
+          });
+        }
+      }
+      current = current.add(const Duration(days: 1));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
     final DateTime futureLimit = DateTime(now.year + 5, 12, 31);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Detalles adicionales")),
       body: Padding(
@@ -104,7 +134,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
             TableCalendar(
               locale: 'es_ES',
               focusedDay: today,
-              firstDay: today, 
+              firstDay: today,
               lastDay: futureLimit,
               calendarFormat: CalendarFormat.month,
               availableCalendarFormats: const {
@@ -146,4 +176,3 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
     );
   }
 }
-
