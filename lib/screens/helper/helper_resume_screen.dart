@@ -28,10 +28,17 @@ class _HelperResumeScreenState extends State<HelperResumeScreen> {
   Future<void> _fetchAssignedTasks() async {
     if (userId == null) return;
 
-    // 1. Consultar las tareas donde el helperId coincide con el ID del usuario
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day); // Inicio del día
+    final todayEnd = todayStart.add(Duration(days: 1)); // Fin del día
+
+    // 1. Consultar las tareas donde el helperId coincide con el ID del usuario y que son para hoy
     final tasksSnapshot = await FirebaseFirestore.instance
         .collection('tareas')
         .where('helperId', isEqualTo: userId) // Filtrar por ID del ayudante
+        .where('fecha', isGreaterThanOrEqualTo: todayStart)
+        .where('fecha', isLessThan: todayEnd)
+        .orderBy('fecha', descending: true)
         .get();
 
     if (tasksSnapshot.docs.isEmpty) {
@@ -200,3 +207,4 @@ class _HelperResumeScreenState extends State<HelperResumeScreen> {
     );
   }
 }
+

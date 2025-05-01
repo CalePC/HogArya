@@ -6,23 +6,30 @@ import 'add_comment_screen.dart'; // Importar para agregar comentarios
 class ContractorResumeScreen extends StatelessWidget {
   const ContractorResumeScreen({super.key});
 
-  // Método para obtener los reportes de las tareas
+  // Método para obtener las tareas del mismo día
   Future<List<Map<String, dynamic>>> _getTaskReports() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
+    if (userId == null) {
+      return [];
+    }
+
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day); // Inicio del día
+    final todayEnd = todayStart.add(Duration(days: 1)); // Fin del día
 
     final tasksSnapshot = await FirebaseFirestore.instance
         .collection('tareas')
         .where('contratanteId', isEqualTo: userId)
+        .where('fecha', isGreaterThanOrEqualTo: todayStart)
+        .where('fecha', isLessThan: todayEnd)
         .orderBy('fecha', descending: true)
         .get();
 
     List<Map<String, dynamic>> tasks = [];
 
-
     for (var doc in tasksSnapshot.docs) {
       final data = doc.data() as Map<String, dynamic>;
-
 
       final descripcion = data['descripcion'] ?? 'Sin descripción';
       final imagenUrl = data['imagen'] ?? '';
@@ -58,9 +65,9 @@ class ContractorResumeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 1,
+        elevation: 0, // No sombra en el app bar
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      body: FutureBuilder<List<Map<String, dynamic>>>( // Usamos FutureBuilder para manejar los datos asincrónicos
         future: _getTaskReports(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -92,15 +99,23 @@ class ContractorResumeScreen extends StatelessWidget {
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD1ECFF),
-                  borderRadius: BorderRadius.circular(20),
+                  color: const Color(0xFFE5F0FF), // Azul claro similar al fondo de las tarjetas
+                  borderRadius: BorderRadius.circular(12), // Borde más suave
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
+                    // Imagen de la tarea
                     imageUrl.isNotEmpty
                         ? Image.network(
                       imageUrl,
@@ -108,27 +123,34 @@ class ContractorResumeScreen extends StatelessWidget {
                       width: 100,
                       fit: BoxFit.cover,
                     )
-                        : const Icon(Icons.image, size: 80, color: Colors.grey),
-                    const SizedBox(height: 8),
+                        : const Icon(Icons.image, size: 100, color: Colors.grey),
 
-                    Text(description, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 4),
-                    Text('Hora: $formattedTime'),
-                    const SizedBox(height: 10),
+                    const SizedBox(width: 12), // Espaciado entre imagen y texto
 
-                    Text(isCompleted ? 'Tarea completada' : 'Tarea pendiente'),
-                    const SizedBox(height: 12),
+                    // Información de la tarea
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Descripción de la tarea
+                          Text(description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text('Hora: $formattedTime', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          const SizedBox(height: 10),
 
-                    Text('Tipo: $tipo'),
-                    const SizedBox(height: 12),
+                          // Estado de la tarea (si está completada o no)
+                          Text(isCompleted ? 'Tarea completada' : 'Tarea pendiente', style: const TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                    ),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
+                    // Iconos para acciones
+                    Column(
                       children: [
                         IconButton(
                           icon: const Icon(Icons.lightbulb_outline, color: Colors.amber),
                           onPressed: () {
-
+                            // Navegar a la pantalla de agregar comentario
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -146,7 +168,7 @@ class ContractorResumeScreen extends StatelessWidget {
                             color: Colors.blue,
                           ),
                           onPressed: () {
-                           
+                            // Marcar la tarea como completada
                             FirebaseFirestore.instance
                                 .collection('tareas')
                                 .doc(taskId)
@@ -165,5 +187,3 @@ class ContractorResumeScreen extends StatelessWidget {
     );
   }
 }
-
-
