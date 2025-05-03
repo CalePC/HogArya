@@ -2,35 +2,32 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
-  // REGISTRO
+  AuthService({FirebaseAuth? auth, FirebaseFirestore? firestore})
+      : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
+
   Future<User?> register(String email, String password, String name) async {
     try {
       final userCred = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-
       final uid = userCred.user?.uid;
-
-      // Guardar en Firestore
       await _firestore.collection('users').doc(uid).set({
         'name': name,
         'email': email,
         'createdAt': FieldValue.serverTimestamp(),
-        'role': 'user', // puedes luego cambiar con custom claims
+        'role': 'user',
       });
-
       return userCred.user;
     } catch (e) {
-      print('❌ Error al registrar: $e');
       rethrow;
     }
   }
 
-  // LOGIN
   Future<User?> login(String email, String password) async {
     try {
       final userCred = await _auth.signInWithEmailAndPassword(
@@ -39,16 +36,13 @@ class AuthService {
       );
       return userCred.user;
     } catch (e) {
-      print('❌ Error al iniciar sesión: $e');
       rethrow;
     }
   }
 
-  // LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
   }
 
-  // USUARIO ACTUAL
   User? get currentUser => _auth.currentUser;
 }

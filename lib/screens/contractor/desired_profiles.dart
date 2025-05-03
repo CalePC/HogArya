@@ -41,7 +41,6 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
     }).toList();
   }
 
-  // Método para eliminar la solicitud y todas sus tareas asociadas
   Future<void> deleteRequest(String id) async {
     try {
       // Eliminar todas las tareas asociadas a esta solicitud
@@ -54,7 +53,6 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
         await doc.reference.delete();
       }
 
-      // Eliminar la solicitud
       await FirebaseFirestore.instance.collection('solicitudes').doc(id).delete();
       setState(() {});
       ScaffoldMessenger.of(context).showSnackBar(
@@ -69,10 +67,10 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
 
   Future<void> acceptPostulation(String postId, String helperId, String solicitudId) async {
     try {
-      // Actualizar el estado de la postulación a "aceptado"
+
       await FirebaseFirestore.instance.collection('postulaciones').doc(postId).update({'estado': 'aceptado'});
 
-      // Actualizar las tareas de la solicitud con el helperId
+
       final tasksSnapshot = await FirebaseFirestore.instance
           .collection('tareas')
           .where('solicitudId', isEqualTo: solicitudId)
