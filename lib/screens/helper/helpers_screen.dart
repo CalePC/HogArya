@@ -281,6 +281,7 @@ class _HelpersScreenState extends State<HelpersScreen> {
                         'contraoferta': double.tryParse(contraoferta) ?? 0.0,
                         'estado': 'pendiente',
                         'fecha': Timestamp.now(),
+                        'contractorId': '',
                       });
 
                       ScaffoldMessenger.of(context).showSnackBar(
