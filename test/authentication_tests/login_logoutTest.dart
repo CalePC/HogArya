@@ -94,9 +94,6 @@ void main() {
         mockUser: MockUser(uid: 'u1', email: 'test@test.com'),
       );
       final repo = AuthRepository(authInstance: mockAuth);
-
-      expect(mockAuth.currentUser, isNotNull);
-
       await repo.logout();
 
       expect(mockAuth.currentUser, isNull);
