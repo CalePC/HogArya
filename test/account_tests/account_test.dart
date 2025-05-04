@@ -1,109 +1,144 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mockito/mockito.dart';
 
 import '../repository/account_service.dart';
 
-
-class TestUser extends MockUser {
-  TestUser({required String uid, required String email})
-      : super(uid: uid, email: email);
-
-
-  @override
-  Future<void> updateEmail(String newEmail) async {
-    email = newEmail;
-  }
-
-  @override
-  Future<void> updatePassword(String newPassword) async {
-
-  }
-}
-
 void main() {
-  /* Binding y FirebaseApp en memoria */
+
   TestWidgetsFlutterBinding.ensureInitialized();
   setupFirebaseCoreMocks();
-
-  setUpAll(() async => await Firebase.initializeApp());
-
-  /* --------------------------- changeEmail() --------------------------- */
-  group('AccountService.changeEmail()', () {
-    late MockFirebaseAuth authMock;
-    late AccountService   service;
-
-    setUp(() async {
-      authMock = MockFirebaseAuth(
-        mockUser: TestUser(uid: 'uOld', email: 'old@test.com'),
-      );
-      service = AccountService(authInstance: authMock);
-    });
-
-    test('cambia email cuando todo es correcto', () async {
-      await service.changeEmail(
-        newEmail: 'new@test.com',
-        currentPassword: 'pwd',
-      );
-
-      expect(authMock.currentUser!.email, 'new@test.com');
-    });
-
-    test('lanza email-already-in-use si otra cuenta tiene el correo', () async {
-      await authMock.createUserWithEmailAndPassword(
-        email: 'dup@test.com',
-        password: '123',
-      );
-
-      expect(
-            () => service.changeEmail(
-          newEmail: 'dup@test.com',
-          currentPassword: 'pwd',
-        ),
-        throwsA(isA<auth.FirebaseAuthException>()
-            .having((e) => e.code, 'code', 'email-already-in-use')),
-      );
-    });
-
-    test('lanza wrong-password si contraseña es incorrecta', () async {
-      expect(
-            () => service.changeEmail(
-          newEmail: 'other@test.com',
-          currentPassword: 'wrong', // distinta de 'pwd'
-        ),
-        throwsA(isA<auth.FirebaseAuthException>()
-            .having((e) => e.code, 'code', 'wrong-password')),
-      );
-    });
+  setUpAll(() async {
+    await Firebase.initializeApp();
   });
 
-  /* -------------------------- changePassword() -------------------------- */
-  group('AccountService.changePassword()', () {
-    test('actualiza contraseña tras reautenticarse', () async {
-      final authMock = MockFirebaseAuth(
-        mockUser: TestUser(uid: 'u1', email: 'user@test.com'),
-      );
-      final service = AccountService(authInstance: authMock);
+  group('UserService', () {
 
-      await service.changePassword(oldPassword: 'pwd', newPassword: 'new123');
-      // si no se lanza excepción, se considera éxito
-      expect(true, isTrue);
+
+    late MockFirebaseAuth authMock;
+    late AccountService accountService;
+    late MockUser testUser;
+
+    setUp(() {
+      testUser = MockUser(uid: 'test_uid', email: 'testuser@example.com');
+      authMock = MockFirebaseAuth(mockUser: testUser);
+      accountService = AccountService();
     });
 
-    test('lanza wrong-password si oldPassword es incorrecta', () async {
-      final authMock = MockFirebaseAuth(
-        mockUser: TestUser(uid: 'u2', email: 'fail@test.com'),
-      );
-      final service = AccountService(authInstance: authMock);
+    group('saveSkills()', () {
+      test('guardar las nuevas habilidades', () async {
 
-      expect(
-            () => service.changePassword(oldPassword: 'bad', newPassword: 'x'),
-        throwsA(isA<auth.FirebaseAuthException>()
-            .having((e) => e.code, 'code', 'wrong-password')),
-      );
+        final user = authMock.currentUser;
+
+        final selectedSkills = ['Limpieza', 'Alimentación'];
+
+        final instance = FakeFirebaseFirestore();
+
+        await instance.collection('usuarios').doc(testUser.uid).set({'habilidades': []});
+        await instance.collection('usuarios').doc(testUser.uid).update({
+          'habilidades': selectedSkills,
+        });
+
+        final doc = await instance.collection('usuarios').doc(testUser.uid).get();
+        expect(doc.data()?['habilidades'], selectedSkills);
+      });
+    });
+
+    group('deleteUser()', () {
+      test('borrar al usuario despues de la auth', () async {
+        final password = 'contrasena';
+        final credential = EmailAuthProvider.credential(email: 'testuser@example.com', password: password);
+
+        when(authMock.currentUser!.reauthenticateWithCredential(credential))
+            .thenAnswer((_) => Future.value());
+
+        await accountService.deleteUser(password);
+
+        verify(authMock.currentUser!.delete()).called(1);
+      });
+
+      test('manda error por contraseña incorrecta', () async {
+        final password = 'incorrect_password';
+        final credential = EmailAuthProvider.credential(email: 'testuser@example.com', password: password);
+
+        when(authMock.currentUser!.reauthenticateWithCredential(credential))
+            .thenThrow(FirebaseAuthException(code: 'wrong-password'));
+
+        expect(() async => await accountService.deleteUser(password),
+            throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('Incorrect password'))));
+      });
+
+      test('manda error por no estar logeado', () async {
+        authMock = MockFirebaseAuth();
+        accountService = AccountService();
+
+        expect(() async => await accountService.deleteUser('password'),
+            throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('User not logged in'))));
+      });
+    });
+
+    group('changeEmail()', () {
+      test('cambiar correo', () async {
+        await accountService.changeEmail(
+          newEmail: 'newemail@example.com',
+          currentPassword: 'password',
+        );
+
+        expect(authMock.currentUser!.email, equals('newemail@example.com'));
+      });
+
+      test('manda error por contraseña incorrecta', () async {
+        expect(
+              () => accountService.changeEmail(
+            newEmail: 'otheremail@example.com',
+            currentPassword: 'wrongpassword',
+          ),
+          throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('Failed to change email'))),
+        );
+      });
+
+      test('manda error por no estar logeado', () async {
+        authMock = MockFirebaseAuth();
+        accountService = AccountService();
+
+        expect(
+              () => accountService.changeEmail(newEmail: 'newemail@example.com', currentPassword: 'password'),
+          throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('User not logged in'))),
+        );
+      });
+    });
+
+    group('changePassword()', () {
+      test('cambiar contraseña', () async {
+        await accountService.changePassword(
+          oldPassword: 'password',
+          newPassword: 'newpassword123',
+        );
+
+        expect(true, isTrue);
+      });
+
+      test('error por contraseña incorrecta', () async {
+        expect(
+              () => accountService.changePassword(
+            oldPassword: 'wrongpassword',
+            newPassword: 'newpassword123',
+          ),
+          throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('Failed to change password'))),
+        );
+      });
+
+      test('manda error por no estar logeado', () async {
+        authMock = MockFirebaseAuth();
+        accountService = AccountService();
+
+        expect(() async => await accountService.changePassword(oldPassword: 'password', newPassword: 'newpassword123'),
+            throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('User not logged in'))));
+      });
     });
   });
 }

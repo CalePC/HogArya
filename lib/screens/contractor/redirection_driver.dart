@@ -23,14 +23,13 @@ class RedirectionDriver extends StatelessWidget {
         }
 
         if (!snapshot.hasData || !snapshot.data!) {
-          // Si no tiene contrato, redirige a la pantalla de solicitud
           Future.delayed(Duration.zero, () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => const DesiredProfiles()), // Redirige a la pantalla de solicitud
+              MaterialPageRoute(builder: (_) => const DesiredProfiles()),
             );
           });
-          return const Center(child: CircularProgressIndicator()); // Muestra un indicador mientras se redirige
+          return const Center(child: CircularProgressIndicator());
         }
 
         return Scaffold(

@@ -12,7 +12,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
     setupFirebaseCoreMocks();
-    await Firebase.initializeApp(); // crea el App "[DEFAULT]" en memoria
+    await Firebase.initializeApp();
   });
 
   group('CU01 – AuthRepository.loginAndGetRole()', () {
@@ -95,11 +95,11 @@ void main() {
       );
       final repo = AuthRepository(authInstance: mockAuth);
 
-      expect(mockAuth.currentUser, isNotNull); // pre‑condición
+      expect(mockAuth.currentUser, isNotNull);
 
       await repo.logout();
 
-      expect(mockAuth.currentUser, isNull);    // verificación
+      expect(mockAuth.currentUser, isNull);
     });
   });
 }

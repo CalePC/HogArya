@@ -40,12 +40,10 @@ void main() {
         solicitudId: 'sol001',
       );
 
-      // Verifica postulación
       final postSnap =
       await firestore.collection('postulaciones').doc('post1').get();
       expect(postSnap['estado'], 'aceptado');
 
-      // Verifica tareas actualizadas
       final t1 =
       await firestore.collection('tareas').doc(tarea1).get();
       final t2 =

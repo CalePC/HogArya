@@ -29,7 +29,6 @@ void main() {
     );
   });
 
-  /* ------------------- Paso 1 : registerUser() ------------------- */
   group('registerUser()', () {
     test('registra y devuelve uid', () async {
       final uid = await repo.registerUser(
@@ -53,7 +52,6 @@ void main() {
     });
 
     test('propaga FirebaseAuthException (email duplicado)', () async {
-      // Pre‑creamos un user con el mismo correo
       await mockAuth.createUserWithEmailAndPassword(
           email: 'dup@test.com', password: 'secret');
 
@@ -68,7 +66,6 @@ void main() {
     });
   });
 
-  /* ------------------- Paso 2 : finishRegistration() -------------- */
   group('finishRegistration()', () {
     late String uid;
 
@@ -121,7 +118,6 @@ void main() {
     });
   });
 
-  /* ------------------- Paso 3 : saveSkills() ---------------------- */
   group('saveSkills()', () {
     late String uid;
 

@@ -6,7 +6,6 @@ import 'add_comment_screen.dart'; // Importar para agregar comentarios
 class ContractorResumeScreen extends StatelessWidget {
   const ContractorResumeScreen({super.key});
 
-  // Método para obtener las tareas del mismo día
   Future<List<Map<String, dynamic>>> _getTaskReports() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -65,7 +64,7 @@ class ContractorResumeScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        elevation: 0, // No sombra en el app bar
+        elevation: 0,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>( // Usamos FutureBuilder para manejar los datos asincrónicos
         future: _getTaskReports(),
@@ -101,8 +100,8 @@ class ContractorResumeScreen extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5F0FF), // Azul claro similar al fondo de las tarjetas
-                  borderRadius: BorderRadius.circular(12), // Borde más suave
+                  color: const Color(0xFFE5F0FF),
+                  borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.2),
@@ -125,14 +124,12 @@ class ContractorResumeScreen extends StatelessWidget {
                     )
                         : const Icon(Icons.image, size: 100, color: Colors.grey),
 
-                    const SizedBox(width: 12), // Espaciado entre imagen y texto
+                    const SizedBox(width: 12),
 
-                    // Información de la tarea
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Descripción de la tarea
                           Text(description, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           const SizedBox(height: 4),
                           Text('Hora: $formattedTime', style: const TextStyle(fontSize: 12, color: Colors.grey)),
@@ -150,7 +147,6 @@ class ContractorResumeScreen extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.lightbulb_outline, color: Colors.amber),
                           onPressed: () {
-                            // Navegar a la pantalla de agregar comentario
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -168,7 +164,6 @@ class ContractorResumeScreen extends StatelessWidget {
                             color: Colors.blue,
                           ),
                           onPressed: () {
-                            // Marcar la tarea como completada
                             FirebaseFirestore.instance
                                 .collection('tareas')
                                 .doc(taskId)

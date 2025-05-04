@@ -54,7 +54,7 @@ dev_dependencies:
 
   flutter_test:
     sdk: flutter
-  firebase_core_platform_interface: any
+  firebase_core_platform_interface: 5.4.0
   firebase_auth_mocks: ^0.14.1
   fake_cloud_firestore: ^3.1.0
 

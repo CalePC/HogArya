@@ -25,7 +25,6 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
     }
 
     try {
-      // Guardar el comentario en Firestore
       await FirebaseFirestore.instance.collection('comentarios').add({
         'tareaId': widget.tareaId,
         'helperId': widget.helperId,
@@ -33,14 +32,13 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
         'fecha': Timestamp.now(),
       });
 
-      // Enviar notificación al ayudante (esto lo puedes hacer con Firebase Messaging)
       await FirebaseFirestore.instance.collection('notificaciones').add({
         'helperId': widget.helperId,
         'mensaje': 'Nuevo comentario sobre tu tarea.',
         'fecha': Timestamp.now(),
       });
 
-      Navigator.pop(context); // Regresar a la pantalla anterior
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Comentario enviado exitosamente')),
       );

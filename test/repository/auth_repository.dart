@@ -11,8 +11,6 @@ class AuthRepository {
   })  : _auth = authInstance ?? auth.FirebaseAuth.instance,
         _db = firestoreInstance ?? FirebaseFirestore.instance;
 
-  /// CU01 – Iniciar sesión y obtener rol.
-  /// Devuelve 'helper' | 'contractor' | 'super'
   Future<String> loginAndGetRole({
     required String email,
     required String password,

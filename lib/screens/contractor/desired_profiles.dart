@@ -331,14 +331,14 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
         },
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex, // Perfil de trabajo por defecto
+        currentIndex: _currentIndex,
         onTap: (index) {
           if (index == _currentIndex) return;
           setState(() => _currentIndex = index);
           if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const DesiredProfiles()), // Perfil de trabajo
+              MaterialPageRoute(builder: (_) => const DesiredProfiles()),
             );
           } else if (index == 1) {
             Navigator.push(
@@ -349,7 +349,7 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
           } else if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const MyHelpersScreen()), // Redirigir a Ayudantes
+              MaterialPageRoute(builder: (_) => const MyHelpersScreen()),
             );
           }
         },

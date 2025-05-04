@@ -1,4 +1,3 @@
-// lib/data/registration_repository.dart
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -11,7 +10,6 @@ class RegistrationRepository {
   })  : _auth = authInstance ?? auth.FirebaseAuth.instance,
         _db = firestoreInstance ?? FirebaseFirestore.instance;
 
-  /// Paso 1 – Alta de usuario en Firebase Auth
   Future<String> registerUser({
     required String email,
     required String password,
@@ -25,7 +23,6 @@ class RegistrationRepository {
     return cred.user!.uid;
   }
 
-  /// Paso 2 – Completar datos en colección `usuarios`
   Future<String> finishRegistration({
     required String uid,
     required String email,
@@ -45,10 +42,9 @@ class RegistrationRepository {
       'email': email,
       'password': password,
     });
-    return role; // lo usará la UI para decidir a dónde navegar
+    return role;
   }
 
-  /// Paso 3 – Guardar habilidades del helper
   Future<void> saveSkills({
     required String uid,
     required List<String> skills,

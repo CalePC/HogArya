@@ -23,7 +23,6 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
 
   RangeSelectionMode rangeSelectionMode = RangeSelectionMode.toggledOn;
 
-  // Método para enviar la solicitud
   void submitFullRequest() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
 
@@ -38,13 +37,10 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
       'fecha_fin': endDate?.toIso8601String(),
     };
 
-    // Si estamos editando, actualizamos la solicitud, si no, la creamos
     if (widget.editingRequest == null) {
-      // Creación de nueva solicitud
       final solicitudRef = await FirebaseFirestore.instance.collection('solicitudes').add(solicitudData);
       _createTasksForDates(solicitudRef.id, tasks, uid);  // Crea las tareas para cada fecha
     } else {
-      // Actualización de solicitud existente
       await FirebaseFirestore.instance
           .collection('solicitudes')
           .doc(widget.editingRequest!['id'])
@@ -54,21 +50,19 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
 
     if (!mounted) return;
 
-    // Redirigir al perfil deseado después de enviar la solicitud
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const DesiredProfiles()),
     );
   }
 
-  // Método para crear o actualizar las tareas por fecha
   Future<void> _createTasksForDates(String solicitudId, Map<String, List<String>> tasks, String uid) async {
     DateTime current = DateTime(startDate!.year, startDate!.month, startDate!.day);
     final lastDay = DateTime(endDate!.year, endDate!.month, endDate!.day);
 
     while (!current.isAfter(lastDay)) {
       for (final entry in tasks.entries) {
-        final tipo = entry.key; // 'hogar', 'cuidados', etc.
+        final tipo = entry.key;
         final tareaList = entry.value;
 
         for (final descripcion in tareaList) {
@@ -79,8 +73,8 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
             'solicitudId': solicitudId,
             'fecha': Timestamp.fromDate(current),
             'fecha_creacion': Timestamp.now(),
-            'imagen': '',  // Aquí puedes agregar la URL de la imagen más tarde
-            'helperId': '',  // Se asignará después
+            'imagen': '',
+            'helperId': '',
           });
         }
       }

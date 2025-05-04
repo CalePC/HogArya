@@ -1,40 +1,37 @@
-import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AccountService {
-  final auth.FirebaseAuth _auth;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Allow injecting FirebaseAuth instance for testing
-  AccountService({@visibleForTesting auth.FirebaseAuth? authInstance})
-      : _auth = authInstance ?? auth.FirebaseAuth.instance;
-
-  Future<void> changeEmail({
-    required String newEmail,
-    required String currentPassword,
-  }) async {
-    final user = _auth.currentUser;
-    if (user == null) {
-      throw Exception("User not logged in."); // Or a specific exception
+  Future<void> saveSkills(List<String> selectedSkills) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) {
+      throw Exception("User not logged in.");
     }
 
-    // Re-authenticate the user first
-    final credential = auth.EmailAuthProvider.credential(
-      email: user.email!, // Assume user has email
-      password: currentPassword,
-    );
+    await FirebaseFirestore.instance.collection('usuarios').doc(uid).update({
+      'habilidades': selectedSkills,
+    });
+  }
+
+  Future<void> deleteUser(String password) async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+
+    if (user == null || email == null) {
+      throw Exception("User not logged in.");
+    }
 
     try {
+      final credential = EmailAuthProvider.credential(email: email, password: password);
       await user.reauthenticateWithCredential(credential);
-      // If re-authentication is successful, update the email
-      await user.updateEmail(newEmail);
-      // Optional: Send verification email to the new address
-      // await user.sendEmailVerification();
-    } on auth.FirebaseAuthException {
-      // Re-throw the exception to be handled by the caller
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        throw Exception("Incorrect password.");
+      }
       rethrow;
-    } catch (e) {
-      // Handle other potential errors during re-auth or update
-      throw Exception("Failed to change email: ${e.toString()}");
     }
   }
 
@@ -50,19 +47,43 @@ class AccountService {
       throw Exception("Cannot change password for user without email.");
     }
 
-    final credential = auth.EmailAuthProvider.credential(
+    final credential = EmailAuthProvider.credential(
       email: user.email!,
       password: oldPassword,
     );
 
     try {
       await user.reauthenticateWithCredential(credential);
-      // If re-authentication is successful, update the password
       await user.updatePassword(newPassword);
-    } on auth.FirebaseAuthException {
+    } on FirebaseAuthException {
       rethrow;
     } catch (e) {
       throw Exception("Failed to change password: ${e.toString()}");
+    }
+  }
+
+  // Método previo para cambiar el email
+  Future<void> changeEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in.");
+    }
+
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: currentPassword,
+    );
+
+    try {
+      await user.reauthenticateWithCredential(credential);
+      await user.updateEmail(newEmail);
+    } on FirebaseAuthException {
+      rethrow;
+    } catch (e) {
+      throw Exception("Failed to change email: ${e.toString()}");
     }
   }
 }
