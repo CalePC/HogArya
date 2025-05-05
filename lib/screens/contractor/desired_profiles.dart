@@ -248,10 +248,8 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
                                                   return const Text(
                                                       "Cargando...");
                                                 }
-                                                final name = snap.data
-                                                    ?.get(
-                                                    'nombre') ??
-                                                    'Sin nombre';
+                                                if (!snap.hasData || !snap.data!.exists) { return const Text('Usuario no encontrado');}
+                                                    final name = snap.data!.get('nombre') ?? 'Sin nombre';
                                                 return Text(name,
                                                     style: const TextStyle(
                                                         fontWeight:
@@ -330,6 +328,18 @@ class _DesiredProfilesState extends State<DesiredProfiles> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddJobProfileScreen()),
+          );
+        },
+        backgroundColor: Colors.blueAccent,
+        label: const Text("Crear"),
+        icon: const Icon(Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {

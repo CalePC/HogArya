@@ -1,10 +1,10 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
+import 'package:intl/intl.dart';
 
 class HelperResumeScreen extends StatefulWidget {
   const HelperResumeScreen({super.key});
@@ -29,43 +29,28 @@ class _HelperResumeScreenState extends State<HelperResumeScreen> {
 
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
-    final todayEnd = todayStart.add(Duration(days: 1));
+    final todayEnd = todayStart.add(const Duration(days: 1));
 
-    final tasksSnapshot = await FirebaseFirestore.instance
+    final snapshot = await FirebaseFirestore.instance
         .collection('tareas')
         .where('helperId', isEqualTo: userId)
         .where('fecha', isGreaterThanOrEqualTo: todayStart)
         .where('fecha', isLessThan: todayEnd)
-        .orderBy('fecha', descending: true)
+        .orderBy('fecha', descending: false)
         .get();
 
-    if (tasksSnapshot.docs.isEmpty) {
-      setState(() => tasks = []);
-      return;
-    }
-
     List<Map<String, dynamic>> fetchedTasks = [];
-    for (var doc in tasksSnapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
 
-      final descripcion = data['descripcion'] ?? 'Sin descripción';
-      final imagenUrl = data['imagen'] ?? '';
-      final tipo = data['tipo'] ?? 'No especificado';
-      final solicitudId = data['solicitudId'] ?? '';
-      final fecha = data['fecha'] ?? '';
-      final timestamp = data['fecha_creacion'] as Timestamp?;
-      final formattedTime = timestamp != null
-          ? '${timestamp.toDate().hour}:${timestamp.toDate().minute}'
-          : 'Hora no disponible';
+    for (var doc in snapshot.docs) {
+      final data = doc.data();
+      final timestamp = data['fecha'] as Timestamp?;
+      final hora = timestamp != null ? DateFormat.jm('es_ES').format(timestamp.toDate()) : 'Hora no disponible';
 
       fetchedTasks.add({
         'taskId': doc.id,
-        'descripcion': descripcion,
-        'imagen': imagenUrl,
-        'tipo': tipo,
-        'solicitudId': solicitudId,
-        'fecha': fecha,
-        'formattedTime': formattedTime,
+        'descripcion': data['descripcion'] ?? '',
+        'completada': data['completada'] is bool ? data['completada'] : false,
+        'hora': hora,
       });
     }
 
@@ -81,51 +66,41 @@ class _HelperResumeScreenState extends State<HelperResumeScreen> {
     File imageFile = File(pickedFile.path);
 
     try {
-      final cloudinary = CloudinaryPublic(
-        'dpct1rohg',
-        'Prueba',
-        cache: false,
-      );
-
+      final cloudinary = CloudinaryPublic('dpct1rohg', 'Prueba', cache: false);
       final response = await cloudinary.uploadFile(
         CloudinaryFile.fromFile(imageFile.path, resourceType: CloudinaryResourceType.Image),
       );
 
-      final imageUrl = response.secureUrl;
-
       await FirebaseFirestore.instance
           .collection('tareas')
           .doc(taskId)
-          .update({'imagen': imageUrl});
+          .update({'imagen': response.secureUrl});
+
+      _fetchAssignedTasks();
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Foto subida correctamente')),
       );
-
-      _fetchAssignedTasks();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al subir la imagen: $e')),
+        SnackBar(content: Text('Error al subir imagen: $e')),
       );
     }
   }
 
   Future<void> _markTaskCompleted(String taskId) async {
-    await FirebaseFirestore.instance
-        .collection('tareas')
-        .doc(taskId)
-        .update({'completada': true});
+    await FirebaseFirestore.instance.collection('tareas').doc(taskId).update({'completada': true});
+    _fetchAssignedTasks();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Tarea marcada como completada')),
     );
-
-    _fetchAssignedTasks();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Mi resumen del día'),
         centerTitle: true,
@@ -133,67 +108,81 @@ class _HelperResumeScreenState extends State<HelperResumeScreen> {
         foregroundColor: Colors.black,
         elevation: 1,
       ),
-      body: tasks.isEmpty
-          ? const Center(child: Text('No hay tareas asignadas'))
-          : ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: tasks.length,
-        itemBuilder: (context, index) {
-          final taskData = tasks[index];
-          final descripcion = taskData['descripcion'];
-          final imageUrl = taskData['imagen'];
-          final tipo = taskData['tipo'];
-          final fecha = taskData['fecha'];
-          final formattedTime = taskData['formattedTime'];
-          final taskId = taskData['taskId'];
-
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFD1ECFF),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                imageUrl.isNotEmpty
-                    ? Image.network(
-                  imageUrl,
-                  height: 100,
-                  width: 100,
-                  fit: BoxFit.cover,
-                )
-                    : const Icon(Icons.image, size: 80, color: Colors.grey),
-                const SizedBox(height: 8),
-                Text(descripcion, style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('Fecha: $fecha'),
-                const SizedBox(height: 4),
-                Text('Hora: $formattedTime'),
-                const SizedBox(height: 10),
-                Text('Tipo: $tipo'),
-                const SizedBox(height: 12),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: const Color(0xFFE8E6F2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.camera_alt_outlined, color: Colors.green),
-                      onPressed: () => _takeAndUploadPhoto(taskId),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        taskData['completada'] == true ? Icons.check_circle : Icons.check_circle_outline,
-                        color: Colors.blue,
-                      ),
-                      onPressed: () => _markTaskCompleted(taskId),
-                    ),
+                    Icon(Icons.camera_alt_outlined),
+                    SizedBox(width: 6),
+                    Text('Tomar foto'),
+                  ],
+                ),
+                Text(
+                  'Tareas',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Row(
+                  children: [
+                    Text('Marcar completada'),
+                    SizedBox(width: 6),
+                    Icon(Icons.check_circle_outline),
                   ],
                 ),
               ],
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: tasks.isEmpty
+                ? const Center(child: Text('No hay tareas asignadas'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD1ECFF),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.camera_alt_outlined),
+                                onPressed: () => _takeAndUploadPhoto(task['taskId']),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  task['descripcion'],
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  task['completada']
+                                      ? Icons.check_circle
+                                      : Icons.check_circle_outline,
+                                  color: Colors.black87,
+                                ),
+                                onPressed: () => _markTaskCompleted(task['taskId']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
