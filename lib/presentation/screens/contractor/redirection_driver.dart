@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:house_help/screens/contractor/desired_profiles.dart';
+import 'package:hogarya/presentation/screens/contractor/desired_profiles.dart';
 
 class RedirectionDriver extends StatelessWidget {
   const RedirectionDriver({super.key});

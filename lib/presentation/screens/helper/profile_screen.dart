@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../login_screen.dart';
 import '../change_password_screen.dart';
 import '../../widgets/custom_header.dart';
-import '../helper/select_skills_screen.dart';
+import 'select_skills_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

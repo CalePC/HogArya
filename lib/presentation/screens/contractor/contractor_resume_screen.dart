@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'add_comment_screen.dart'; // Importar para agregar comentarios
+import 'add_comment_screen.dart'; 
 
 class ContractorResumeScreen extends StatelessWidget {
   const ContractorResumeScreen({super.key});
@@ -14,8 +14,8 @@ class ContractorResumeScreen extends StatelessWidget {
     }
 
     final today = DateTime.now();
-    final todayStart = DateTime(today.year, today.month, today.day); // Inicio del día
-    final todayEnd = todayStart.add(Duration(days: 1)); // Fin del día
+    final todayStart = DateTime(today.year, today.month, today.day); 
+    final todayEnd = todayStart.add(Duration(days: 1)); 
 
     final tasksSnapshot = await FirebaseFirestore.instance
         .collection('tareas')

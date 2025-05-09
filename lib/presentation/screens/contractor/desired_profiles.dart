@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:house_help/screens/contractor/add_job_profile_screen.dart';
-import 'package:house_help/screens/contractor/contractor_resume_screen.dart';
-import '../contractor/my_helpers_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/add_job_profile_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/contractor_resume_screen.dart';
+import 'my_helpers_screen.dart';
 
 class DesiredProfiles extends StatefulWidget {
   const DesiredProfiles({super.key});

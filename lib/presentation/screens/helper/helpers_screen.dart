@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:house_help/screens/helper/profile_screen.dart';
-import 'package:house_help/screens/helper/requests_details_screen.dart';
-import 'package:house_help/screens/helper/helper_resume_screen.dart';
+import 'profile_screen.dart';
+import 'helper_resume_screen.dart';
+
 
 class HelpersScreen extends StatefulWidget {
   const HelpersScreen({Key? key}) : super(key: key);

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-// Pantalla 2
-import 'package:house_help/screens/helper/helpers_screen.dart';
-import 'package:house_help/screens/contractor/desired_profiles.dart';
+import 'package:hogarya/presentation/screens/helper/helpers_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/desired_profiles.dart';
 
 class ResumeScreen extends StatelessWidget {
   const ResumeScreen({super.key});

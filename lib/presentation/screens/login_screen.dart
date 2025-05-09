@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'register_account_screen.dart';
-import 'register_profile_screen.dart';
 import 'package:flutter/services.dart';
-import 'contractor/redirection_driver.dart';
-import 'helper/helpers_screen.dart';
-import 'super/super_user_screen.dart';
+import '../../application/controllers/auth_controller.dart';
 
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final authController = AuthController();
 
   bool isFormFilled = false;
   String error = '';
@@ -29,7 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark.copyWith(
-       statusBarColor: Colors.black,));
+      statusBarColor: Colors.black,
+    ));
     emailController.addListener(checkForm);
     passwordController.addListener(checkForm);
   }
@@ -38,68 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       isFormFilled = emailController.text.trim().isNotEmpty &&
           passwordController.text.trim().isNotEmpty;
-    });
-  }
-
-  Future<void> loginUser() async {
-    try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
-
-      final uid = credential.user!.uid;
-      final doc = await FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(uid)
-          .get();
-      final role = doc['rol'];
-
-      if (context.mounted) {
-        if (role == 'helper') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HelpersScreen()),
-          );
-        } else if (role == 'contractor') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const RedirectionDriver()),
-          );
-        } else if (role == 'super') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const SuperUserScreen()),
-        );
-        } else {
-          setState(() => error = 'Rol desconocido.');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error)),
-          );
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      setState(() => error = e.message ?? 'Error al iniciar sesión');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
-    }
-  }
-
-  void goToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RegisterAccountScreen()),
-    ).then((result) {
-      if (result != null && result is Map<String, dynamic>) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const RegisterProfileScreen(),
-            settings: RouteSettings(arguments: result),
-          ),
-        );
-      }
     });
   }
 
@@ -149,17 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Align(
+                    const Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Usuario',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                      child: Text('Usuario', style: TextStyle(fontSize: 16)),
                     ),
                     const SizedBox(height: 5),
                     _buildTextField(emailController, false),
                     const SizedBox(height: 20),
-                    Align(
+                    const Align(
                       alignment: Alignment.centerLeft,
                       child: Text('Contraseña', style: TextStyle(fontSize: 16)),
                     ),
@@ -167,31 +98,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildTextField(passwordController, true),
                     const SizedBox(height: 60),
                     GestureDetector(
-                      onTapDown: (_) {
-                        // Color de botón al persionar
-                        setState(() {
-                          _buttonColor = const Color(0xFF82C5FF);
-                        });
-                      },
-                      onTapUp: (_) {
-                       
-                        setState(() {
-                          _buttonColor = const Color(0xFF4ABAFF);
-                        });
-                      },
-                      onTapCancel: () {
-                        setState(() {
-                          _buttonColor = const Color(0xFF4ABAFF);
-                        });
-                      },
-                      onTap: isFormFilled ? loginUser : null,
+                      onTapDown: (_) => setState(() => _buttonColor = const Color(0xFF82C5FF)),
+                      onTapUp: (_) => setState(() => _buttonColor = const Color(0xFF4ABAFF)),
+                      onTapCancel: () => setState(() => _buttonColor = const Color(0xFF4ABAFF)),
+                      onTap: isFormFilled
+                          ? () => authController.loginUser(
+                                email: emailController.text.trim(),
+                                password: passwordController.text.trim(),
+                                context: context,
+                                onError: (msg) {
+                                  setState(() => error = msg);
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                                },
+                              )
+                          : null,
                       child: Container(
                         width: 150,
                         height: 50,
                         decoration: BoxDecoration(
-                          color: isFormFilled
-                              ? _buttonColor
-                              : const Color(0xFFEDEDED),
+                          color: isFormFilled ? _buttonColor : const Color(0xFFEDEDED),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         alignment: Alignment.center,
@@ -207,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      onTap: goToRegister,
+                      onTap: () => authController.goToRegister(context),
                       child: Container(
                         width: 150,
                         height: 50,
@@ -253,5 +178,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  } 
+  }
 }

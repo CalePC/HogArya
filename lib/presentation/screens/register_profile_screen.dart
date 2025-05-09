@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:house_help/screens/helper/helpers_screen.dart';
+import 'package:hogarya/presentation/screens/helper/helpers_screen.dart';
 import 'contractor/redirection_driver.dart';
 import 'helper/select_skills_screen.dart';
 
