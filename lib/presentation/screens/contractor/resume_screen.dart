@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/presentation/screens/helper/helpers_screen.dart';
-import 'package:hogarya/presentation/screens/contractor/desired_profiles.dart';
+import 'package:hogarya/presentation/screens/contractor/desired_profiles_screen.dart';
 
 class ResumeScreen extends StatelessWidget {
   const ResumeScreen({super.key});
@@ -31,7 +31,7 @@ class ResumeScreen extends StatelessWidget {
             case 0:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const DesiredProfiles()), 
+                MaterialPageRoute(builder: (_) => const DesiredProfilesScreen()), 
               );
               break;
             case 1:
