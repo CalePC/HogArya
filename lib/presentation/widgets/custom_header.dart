@@ -4,8 +4,14 @@ import 'package:flutter/services.dart';
 class CustomHeader extends StatelessWidget {
   final String? title;
   final VoidCallback? onProfileTap;
+  final bool showBackButton;
 
-  const CustomHeader({super.key, this.title, this.onProfileTap});
+  const CustomHeader({
+    super.key,
+    this.title,
+    this.onProfileTap,
+    this.showBackButton = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,34 +38,43 @@ class CustomHeader extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Inter',
+              Row(
+                children: [
+                  if (showBackButton)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Inter',
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Hog',
+                          style: TextStyle(
+                            foreground: Paint()
+                              ..shader = const LinearGradient(
+                                colors: [Color(0xFF2D409B), Color(0xFF2C3D99)],
+                              ).createShader(const Rect.fromLTWH(0, 0, 80, 30)),
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'Arya',
+                          style: TextStyle(
+                            foreground: Paint()
+                              ..shader = const LinearGradient(
+                                colors: [Color(0xFF38A5D3), Color(0xFF7BD8FF)],
+                              ).createShader(const Rect.fromLTWH(0, 0, 80, 30)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  children: [
-                    TextSpan(
-                      text: 'Hog',
-                      style: TextStyle(
-                        foreground: Paint()
-                          ..shader = const LinearGradient(
-                            colors: [Color(0xFF2D409B), Color(0xFF2C3D99)],
-                          ).createShader(const Rect.fromLTWH(0, 0, 80, 30)),
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Arya',
-                      style: TextStyle(
-                        foreground: Paint()
-                          ..shader = const LinearGradient(
-                            colors: [Color(0xFF38A5D3), Color(0xFF7BD8FF)],
-                          ).createShader(const Rect.fromLTWH(0, 0, 80, 30)),
-                      ),
-                    ),
-                  ],
-                ),
+                ],
               ),
               GestureDetector(
                 onTap: onProfileTap ?? () {},
@@ -72,8 +87,6 @@ class CustomHeader extends StatelessWidget {
             ],
           ),
         ),
-
-        // Título degradado si se especifica
         if (title != null)
           Container(
             color: Colors.white,
@@ -89,7 +102,7 @@ class CustomHeader extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // se ve a través del shader
+                  color: Colors.white,
                 ),
               ),
             ),

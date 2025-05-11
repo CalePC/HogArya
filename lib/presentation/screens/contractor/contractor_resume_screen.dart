@@ -28,7 +28,7 @@ class ContractorResumeScreen extends StatelessWidget {
     List<Map<String, dynamic>> tasks = [];
 
     for (var doc in tasksSnapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
 
       final descripcion = data['descripcion'] ?? 'Sin descripción';
       final imagenUrl = data['imagen'] ?? '';
@@ -141,7 +141,7 @@ class ContractorResumeScreen extends StatelessWidget {
                       ),
                     ),
 
-                    // Iconos para acciones
+                  
                     Column(
                       children: [
                         IconButton(

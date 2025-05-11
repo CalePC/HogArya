@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class RateHelperScreen extends StatefulWidget {
   final String helperName;
   final String helperId;
-  const RateHelperScreen({Key? key, required this.helperName, required this.helperId}) : super(key: key);
+  const RateHelperScreen({super.key, required this.helperName, required this.helperId});
 
   @override
   _RateHelperScreenState createState() => _RateHelperScreenState();
@@ -13,8 +13,8 @@ class RateHelperScreen extends StatefulWidget {
 
 class _RateHelperScreenState extends State<RateHelperScreen> {
   double _rating = 3.0;
-  List<String> _areasDestacadas = [];
-  TextEditingController _comentariosController = TextEditingController();
+  final List<String> _areasDestacadas = [];
+  final TextEditingController _comentariosController = TextEditingController();
 
   final List<String> areas = ["Niños", "Alimentación", "Mascotas", "Limpieza"];
 
@@ -120,8 +120,8 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: _submitRating,
-                child: const Text("Enviar"),
                 style: ElevatedButton.styleFrom(minimumSize: const Size(150, 50)),
+                child: const Text("Enviar"),
               ),
             ),
           ],

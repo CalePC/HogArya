@@ -6,7 +6,7 @@ import 'desired_profiles_screen.dart';
 
 class AdditionalDetailsScreen extends StatefulWidget {
   final Map<String, List<String>> tasks;
-  final Map<String, dynamic>? editingRequest; // Parámetro opcional para la edición
+  final Map<String, dynamic>? editingRequest; 
 
   const AdditionalDetailsScreen({super.key, required this.tasks, this.editingRequest});
 

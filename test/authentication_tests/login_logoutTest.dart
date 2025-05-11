@@ -29,7 +29,7 @@ void main() {
       );
     });
 
-    Future<void> _createUser({
+    Future<void> createUser({
       required String email,
       required String password,
       required String role,
@@ -43,7 +43,7 @@ void main() {
     }
 
     test('devuelve el rol correcto', () async {
-      await _createUser(
+      await createUser(
         email: 'alice@test.com',
         password: 'pwd',
         role: 'helper',
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('propaga FirebaseAuthException (credenciales erróneas)', () async {
-      await _createUser(
+      await createUser(
         email: 'bob@test.com',
         password: 'pwd',
         role: 'contractor',

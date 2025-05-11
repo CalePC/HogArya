@@ -7,14 +7,14 @@ import 'helper_resume_screen.dart';
 
 
 class HelpersScreen extends StatefulWidget {
-  const HelpersScreen({Key? key}) : super(key: key);
+  const HelpersScreen({super.key});
 
   @override
   State<HelpersScreen> createState() => _HelpersScreenState();
 }
 
 class _HelpersScreenState extends State<HelpersScreen> {
-  List<String> _selectedSkills = [];
+  final List<String> _selectedSkills = [];
   final Map<String, String> _proposedSalary = {};
   String? _expandedRequestId;
   int _currentIndex = 0;
