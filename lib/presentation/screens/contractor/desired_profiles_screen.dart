@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hogarya/presentation/screens/helper/profile_screen.dart';
 import '../../../application/controllers/desired_profiles_controller.dart';
-import '../../widgets/custom_header.dart'; 
+import '../../widgets/custom_header.dart';
 import 'add_job_profile_screen.dart';
 import 'contractor_resume_screen.dart';
 import 'my_helpers_screen.dart';
+
 
 class DesiredProfilesScreen extends StatefulWidget {
   const DesiredProfilesScreen({super.key});
@@ -15,6 +19,25 @@ class DesiredProfilesScreen extends StatefulWidget {
 class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
   final controller = DesiredProfilesController();
   int _currentIndex = 0;
+  String? _role;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+      if (doc.exists) {
+        setState(() {
+          _role = doc['rol'];
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +46,6 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-      
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -38,47 +60,51 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
               ),
             ),
           ),
-
           Column(
             children: [
-              const CustomHeader(title: 'Perfiles deseados'),
+              CustomHeader(
+                title: 'Perfiles deseados',
+                onProfileTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen(role: 'contractor')),
+                  );
+                },
+              ),
               const SizedBox(height: 8),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 height: 1,
                 color: Colors.black.withOpacity(0.2),
               ),
-              
-     
-               Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 80), 
-                    child: FutureBuilder<List<Map<String, dynamic>>>(
-                      future: controller.fetchRequests(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        final requests = snapshot.data!;
-                        if (requests.isEmpty) {
-                          return const Center(child: Text("No hay solicitudes activas"));
-                        }
-                        return ListView.builder(
-                          padding: const EdgeInsets.only(top: 5, bottom: 80),
-                          itemCount: requests.length,
-                          itemBuilder: (context, index) => RequestCard(
-                            request: requests[index],
-                            controller: controller,
-                            onUpdated: () => setState(() {}),
-                          ),
-                        );
-                      },
-                    ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: FutureBuilder<List<Map<String, dynamic>>>(
+                    future: controller.fetchRequests(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final requests = snapshot.data!;
+                      if (requests.isEmpty) {
+                        return const Center(child: Text("No hay solicitudes activas"));
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.only(top: 5, bottom: 80),
+                        itemCount: requests.length,
+                        itemBuilder: (context, index) => RequestCard(
+                          request: requests[index],
+                          controller: controller,
+                          onUpdated: () => setState(() {}),
+                        ),
+                      );
+                    },
                   ),
                 ),
+              ),
             ],
           ),
-
           Positioned(
             bottom: 80,
             right: 20,
@@ -92,9 +118,8 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
               icon: const Icon(Icons.add),
             ),
           ),
-
           Positioned(
-            bottom: 76, 
+            bottom: 76,
             left: 0,
             right: 0,
             child: Container(
@@ -111,50 +136,34 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
               ),
             ),
           ),
-
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.transparent,
-        ),
-
-        child: BottomNavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            if (index == _currentIndex) return;
-            setState(() => _currentIndex = index);
-            final screens = [
-              const DesiredProfilesScreen(),
-              const ContractorResumeScreen(),
-              const MyHelpersScreen(),
-            ];
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => screens[index]));
-          },
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.apartment),
-              label: 'Perfil de trabajo',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment_turned_in_outlined),
-              label: 'Resumen',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.group),
-              label: 'Ayudantes',
-            ),
-          ],
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey,
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index == _currentIndex) return;
+          setState(() => _currentIndex = index);
+          final screens = [
+            const DesiredProfilesScreen(),
+            const ContractorResumeScreen(),
+            const MyHelpersScreen(),
+          ];
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => screens[index]));
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.apartment), label: 'Perfil de trabajo'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment_turned_in_outlined), label: 'Resumen'),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Ayudantes'),
+        ],
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
       ),
-
     );
   }
 }
+
 
 class RequestCard extends StatelessWidget {
   final Map<String, dynamic> request;

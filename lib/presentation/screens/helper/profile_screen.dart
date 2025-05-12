@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,14 +8,17 @@ import '../../widgets/custom_header.dart';
 import 'select_skills_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String role;
+
+  const ProfileScreen({super.key, required this.role});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
-
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _showPassword = false;
+  Map<String, dynamic>? _userData;
+
 
   void _confirmDeleteAccount() {
     final passwordController = TextEditingController();
@@ -154,7 +158,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 if (user != null && newEmail.isNotEmpty && password.isNotEmpty) {
                   try {
-                    // Verificar si ya está en uso
+  
                     final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(newEmail);
                     if (methods.isNotEmpty) {
                       Navigator.pop(context);
@@ -167,7 +171,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return;
                     }
 
-                    // Reautenticamos
                     final credential = EmailAuthProvider.credential(
                       email: user.email!,
                       password: password,
@@ -204,9 +207,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
   }
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+    
+    if (doc.exists) {
+      setState(() {
+        _userData = doc.data();
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    if (_userData == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final nombre = _userData!['nombre'] ?? 'Sin nombre';
+    final edad = _userData!['edad']?.toString() ?? 'Desconocida';
+    final sexo = _userData!['sexo'] ?? 'Desconocido';
+    final viveEnCoatzacoalcos = _userData!['viveEnCoatzacoalcos'] == true;
+    final ubicacion = viveEnCoatzacoalcos ? 'Coatzacoalcos' : 'Fuera de alcance';
+    final correo = FirebaseAuth.instance.currentUser?.email ?? 'Correo no disponible';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -254,16 +289,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(
                           color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
-                  const Text("Nombre: Carlos Pérez Gil"),
-                  const Text("Edad: 35"),
-                  const Text("Sexo: Masculino"),
-                  const Text("Ubicación parcial: Coatzacoalcos"),
+                  Text("Nombre: $nombre"),
+                  Text("Edad: $edad"),
+                  Text("Sexo: $sexo"),
+                  Text("Ubicación parcial: $ubicacion"),
                   const SizedBox(height: 24),
                   const Text("Datos de acceso",
                       style: TextStyle(
                           color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 10),
-                  const Text("Correo: carlosperez@dominio.com"),
+                  Text("Correo: $correo"),
                   Row(
                     children: [
                       Text(
@@ -348,28 +383,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 12),
 
-
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SelectSkillsScreen(userData: {}),
+                  if (widget.role == 'helper') ...[
+                    const SizedBox(height: 12),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SelectSkillsScreen(userData: {}),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.indigo,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: const Text("Editar habilidades"),
                       ),
-                      child: const Text("Editar habilidades"),
                     ),
-                  ),
+                  ],
+
                   const SizedBox(height: 12),
 
                   Center(

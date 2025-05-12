@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CustomHeader extends StatelessWidget {
   final String? title;
@@ -78,10 +79,11 @@ class CustomHeader extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: onProfileTap ?? () {},
-                child: const Icon(
-                  Icons.account_circle,
-                  size: 32,
-                  color: Color(0xFF4ABAFF),
+                child: SvgPicture.asset(
+                  'assets/customProfile.svg',
+                  height: 28,
+                  width: 28,
+                  colorFilter: const ColorFilter.mode(Color(0xFF4ABAFF), BlendMode.srcIn),
                 ),
               ),
             ],
@@ -94,9 +96,12 @@ class CustomHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 12),
             alignment: Alignment.center,
             child: ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
-              ).createShader(bounds),
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
+                ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height));
+              },
+              blendMode: BlendMode.srcIn,
               child: Text(
                 title!,
                 style: const TextStyle(

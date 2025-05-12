@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hogarya/application/controllers/register_controller.dart';
 
 class RegisterAccountScreen extends StatefulWidget {
   const RegisterAccountScreen({super.key});
@@ -9,51 +9,41 @@ class RegisterAccountScreen extends StatefulWidget {
 }
 
 class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmController = TextEditingController();
-
+  final controller = RegisterController();
   String error = '';
 
   @override
   void initState() {
     super.initState();
-    emailController.addListener(() => setState(() {}));
-    passwordController.addListener(() => setState(() {}));
-    confirmController.addListener(() => setState(() {}));
+    controller.emailController.addListener(_refresh);
+    controller.passwordController.addListener(_refresh);
+    controller.confirmController.addListener(_refresh);
   }
 
-  bool isFormComplete() {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final confirm = confirmController.text.trim();
-    return email.isNotEmpty && password.isNotEmpty && confirm.isNotEmpty;
+  void _refresh() => setState(() {});
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
-  void register() async {
-    final email = emailController.text.trim();
-    final password = passwordController.text.trim();
-    final confirm = confirmController.text.trim();
+  void _onRegister() async {
+    final result = await controller.register(context, (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          duration: const Duration(seconds: 3),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    });
 
-    if (password != confirm) {
-      setState(() => error = 'Las contraseñas no coinciden');
-      return;
-    }
-
-    try {
-      final userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-      final user = userCredential.user;
-
-      if (user != null && context.mounted) {
-        Navigator.pop(context, {
-          'uid': user.uid,
-          'email': email,
-          'password': password,
-        });
-      }
-    } on FirebaseAuthException catch (e) {
-      setState(() => error = e.message ?? 'Error al registrar');
+    if (result != null && mounted) {
+      Navigator.pop(context, result);
     }
   }
 
@@ -137,7 +127,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildInputField(controller: emailController),
+                        _buildInputField(controller.emailController),
                         const SizedBox(height: 28),
                         const Text(
                           'Por favor, crea una contraseña',
@@ -148,7 +138,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildInputField(controller: passwordController, obscureText: true),
+                        _buildInputField(controller.passwordController, obscureText: true),
                         const SizedBox(height: 28),
                         const Text(
                           'Confirma tu contraseña',
@@ -159,10 +149,8 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        _buildInputField(controller: confirmController, obscureText: true),
+                        _buildInputField(controller.confirmController, obscureText: true),
                         const SizedBox(height: 20),
-                        if (error.isNotEmpty)
-                          Text(error, style: const TextStyle(color: Colors.red)),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -171,13 +159,13 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
               ),
               Center(
                 child: GestureDetector(
-                  onTap: isFormComplete() ? register : null,
+                  onTap: controller.isFormComplete() ? _onRegister : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     width: 133,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: isFormComplete() ? const Color(0xFF4AB9FF) : Colors.white,
+                      color: controller.isFormComplete() ? const Color(0xFF4AB9FF) : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(width: 1),
                     ),
@@ -203,8 +191,8 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
     );
   }
 
-  Widget _buildInputField({
-    required TextEditingController controller,
+  Widget _buildInputField(
+    TextEditingController controller, {
     bool obscureText = false,
   }) {
     return Container(

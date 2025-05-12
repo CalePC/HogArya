@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'contractor/redirection_driver.dart';
-import 'helper/select_skills_screen.dart';
+import 'package:hogarya/application/controllers/register_profile_controller.dart';
+import 'package:hogarya/presentation/screens/helper/select_skills_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/redirection_driver.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class RegisterProfileScreen extends StatefulWidget {
   const RegisterProfileScreen({super.key});
@@ -11,66 +15,105 @@ class RegisterProfileScreen extends StatefulWidget {
 }
 
 class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
-  String selectedRole = '';
-  String selectedGender = 'Masculino';
-  bool livesInCoatzacoalcos = false;
+  final controller = RegisterProfileController();
+  File? ineImageFile;
+  String? ineImageUrl;
+  bool isUploading = false;
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
+  Future<void> _pickImage({required bool fromCamera}) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: fromCamera ? ImageSource.camera : ImageSource.gallery);
+    if (picked == null) return;
 
-  Future<void> finishRegistration(Map<String, dynamic> args) async {
-    final uid = args['uid'];
-    final email = args['email'];
-    final password = args['password'];
-    final name = nameController.text.trim();
-    final age = int.tryParse(ageController.text.trim()) ?? 0;
-
-    if (selectedRole.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona un rol antes de continuar')),
-      );
-      return;
-    }
-
-    await FirebaseFirestore.instance.collection('usuarios').doc(uid).set({
-      'nombre': name,
-      'sexo': selectedGender,
-      'rol': selectedRole,
-      'edad': age,
-      'viveEnCoatzacoalcos': livesInCoatzacoalcos,
-      'email': email,
-      'password': password,
+    setState(() {
+      ineImageFile = File(picked.path);
+      isUploading = true;
     });
 
-    if (!mounted) return;
+    try {
+      final ref = FirebaseStorage.instance
+      .ref()
+      .child('ine/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      await ref.putFile(ineImageFile!); 
+      final url = await ref.getDownloadURL();  
 
-    if (selectedRole == 'helper') {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SelectSkillsScreen(userData: {
-            'uid': uid,
-            'nombre': name,
-            'sexo': selectedGender,
-            'edad': age,
-            'viveEnCoatzacoalcos': livesInCoatzacoalcos,
-          }),
-        ),
-            (route) => false,
-      );
-    } else {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const RedirectionDriver()),
-        (route) => false,
+      setState(() {
+        ineImageUrl = url;
+        isUploading = false;
+      });
+    } catch (_) {
+      setState(() {
+        ineImageFile = null;
+        ineImageUrl = null;
+        isUploading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al subir la imagen')),
       );
     }
   }
 
-  bool isFormComplete() {
-    final name = nameController.text.trim();
-    final age = int.tryParse(ageController.text.trim()) ?? 0;
-    return name.isNotEmpty && age > 0 && selectedRole.isNotEmpty;
+  void _removeImage() {
+    setState(() {
+      ineImageFile = null;
+      ineImageUrl = null;
+    });
+  }
+
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _finishRegistration(Map<String, dynamic> args) {
+    controller.finishRegistration(
+      context: context,
+      args: args,
+      onError: (msg) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      },
+      onSuccess: () {
+        if (!mounted) return;
+        final uid = args['uid'];
+        final name = controller.nameController.text.trim();
+        final age = int.tryParse(controller.ageController.text.trim()) ?? 0;
+
+        if (controller.selectedRole == 'helper') {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SelectSkillsScreen(
+                userData: {
+                  'uid': uid,
+                  'nombre': name,
+                  'sexo': controller.selectedGender,
+                  'edad': age,
+                  'viveEnCoatzacoalcos': controller.livesInCoatzacoalcos,
+                },
+              ),
+            ),
+            (route) => false,
+          );
+        } else {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const RedirectionDriver()),
+            (route) => false,
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -83,11 +126,7 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Color(0xFFA4DCFF),
-              Color(0xFF4AB9FF),
-            ],
+            colors: [Colors.white, Color(0xFFA4DCFF), Color(0xFF4AB9FF)],
             stops: [0.8, 0.95, 1.0],
           ),
         ),
@@ -119,47 +158,42 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
                     const SizedBox(height: 24),
                     const Text(
                       'Cuéntanos sobre ti',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 12),
                     _roleButton(
                       label: 'Quiero ser ayudante del hogar',
-                      selected: selectedRole == 'helper',
-                      onTap: () => setState(() => selectedRole = 'helper'),
+                      selected: controller.selectedRole == 'helper',
+                      onTap: () => setState(() => controller.selectedRole = 'helper'),
                     ),
                     const SizedBox(height: 12),
                     _roleButton(
                       label: 'Necesito ayudante para mi hogar',
-                      selected: selectedRole == 'contractor',
-                      onTap: () => setState(() => selectedRole = 'contractor'),
+                      selected: controller.selectedRole == 'contractor',
+                      onTap: () => setState(() => controller.selectedRole = 'contractor'),
                     ),
                     const SizedBox(height: 30),
                     const Text(
                       'Necesitamos saber',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 12),
-                    _labelledInput('¿Cuál es tu nombre?', nameController),
+                    _labelledInput('¿Cuál es tu nombre?', controller.nameController),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Expanded(child: _labelledInput('Edad', ageController)),
+                        Expanded(child: _labelledInput('Edad', controller.ageController)),
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: selectedGender,
+                            value: controller.selectedGender,
                             decoration: _inputDecoration('Sexo'),
                             items: const [
                               DropdownMenuItem(value: 'Masculino', child: Text('Masculino')),
                               DropdownMenuItem(value: 'Femenino', child: Text('Femenino')),
                             ],
-                            onChanged: (value) => setState(() => selectedGender = value!),
+                            onChanged: (value) =>
+                                setState(() => controller.selectedGender = value!),
                           ),
                         ),
                       ],
@@ -169,42 +203,50 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        _choiceButton('Sí', livesInCoatzacoalcos == true, () {
-                          setState(() => livesInCoatzacoalcos = true);
+                        _choiceButton('Sí', controller.livesInCoatzacoalcos == true, () {
+                          setState(() => controller.livesInCoatzacoalcos = true);
                         }),
                         const SizedBox(width: 16),
-                        _choiceButton('No', livesInCoatzacoalcos == false, () {
-                          setState(() => livesInCoatzacoalcos = false);
+                        _choiceButton('No', controller.livesInCoatzacoalcos == false, () {
+                          setState(() => controller.livesInCoatzacoalcos = false);
                         }),
                       ],
                     ),
                     const SizedBox(height: 32),
                     const Text(
                       'Ayúdanos a verificarte',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text('Sube la parte frontal de tu INE'),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.camera_alt_outlined, size: 40),
-                        SizedBox(width: 20),
-                        Icon(Icons.image_outlined, size: 40),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text('Tomar foto'),
-                        SizedBox(width: 36),
-                        Text('Ir a galería'),
-                      ],
-                    ),
+                    const SizedBox(height: 20),
+                      if (ineImageFile == null && !isUploading)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _ineOption(icon: Icons.camera_alt_outlined, label: 'Tomar foto', onTap: () => _pickImage(fromCamera: true)),
+                            _ineOption(icon: Icons.image_outlined, label: 'Desde galería', onTap: () => _pickImage(fromCamera: false)),
+                          ],
+                      )
+                      else if (isUploading)
+                        const Center(child: CircularProgressIndicator())
+                      else
+                        Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(ineImageFile!, width: 200, height: 130, fit: BoxFit.cover),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: _removeImage,
+                              icon: const Icon(Icons.delete_outline),
+                              label: const Text("Eliminar"),
+                            ),
+                          ],
+                        ),
+
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -213,8 +255,8 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
                 left: MediaQuery.of(context).size.width / 2 - 66.5,
                 child: GestureDetector(
                   onTap: () {
-                    if (isFormComplete()) {
-                      finishRegistration(args);
+                    if (controller.isFormComplete()) {
+                      _finishRegistration(args);
                     }
                   },
                   child: AnimatedContainer(
@@ -222,11 +264,13 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
                     width: 133,
                     height: 54,
                     decoration: BoxDecoration(
-                      color: isFormComplete() ? const Color(0xFF4AB9FF) : Colors.white,
+                      color: controller.isFormComplete()
+                          ? const Color(0xFF4AB9FF)
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(width: 1),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Text(
                         'Continuar',
                         style: TextStyle(
@@ -246,8 +290,25 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
       ),
     );
   }
+  Widget _ineOption({required IconData icon, required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, size: 40),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 14)),
+        ],
+      ),
+    );
+  }
 
-  Widget _roleButton({required String label, required bool selected, required VoidCallback onTap}) {
+  
+  Widget _roleButton({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -256,7 +317,10 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFFD1ECFF),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Colors.blueAccent : Colors.transparent, width: 2),
+          border: Border.all(
+            color: selected ? Colors.blueAccent : Colors.transparent,
+            width: 2,
+          ),
         ),
         child: Center(
           child: Text(
@@ -296,7 +360,9 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
             borderRadius: BorderRadius.circular(10),
             color: selected ? Colors.black12 : Colors.transparent,
           ),
-          child: Center(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500))),
+          child: Center(
+            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          ),
         ),
       ),
     );

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_svg/svg.dart';
 import 'profile_screen.dart';
 import 'helper_resume_screen.dart';
-
+import '../../widgets/custom_header.dart';
 
 class HelpersScreen extends StatefulWidget {
   const HelpersScreen({super.key});
@@ -18,6 +17,7 @@ class _HelpersScreenState extends State<HelpersScreen> {
   final Map<String, String> _proposedSalary = {};
   String? _expandedRequestId;
   int _currentIndex = 0;
+  String? _role;
 
   final List<String> _availableSkills = [
     'adultos mayores',
@@ -30,110 +30,124 @@ class _HelpersScreenState extends State<HelpersScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
+      if (doc.exists) {
+        setState(() {
+          _role = doc['rol'];
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('HouSeHelp'),
-        actions: [
-          IconButton(
-            icon: SvgPicture.asset(
-              'assets/customProfile.svg',
-              height: 24,
-              width: 24,
-              color: Colors.black,
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
-              );
+      body: Column(
+        children: [
+          CustomHeader(
+            onProfileTap: () {
+              if (_role != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfileScreen(role: _role!),
+                  ),
+                );
+              }
             },
           ),
-        ],
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ElevatedButton.icon(
-                  onPressed: _showFilterSheet,
-                  icon: const Icon(Icons.filter_list),
-                  label: const Text('Filtrar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[100],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  ),
+                const SizedBox(height: 12),
+                const Text(
+                  '¡Estas personas te necesitan!',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.work),
-                  label: const Text('Mi perfil de trabajo'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[100],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _showFilterSheet,
+                      icon: const Icon(Icons.filter_list),
+                      label: const Text('Filtrar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[100],
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.work),
+                      label: const Text('Mi perfil de trabajo'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[100],
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.55,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance.collection('solicitudes').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.data!.docs.isEmpty) {
+                        return const Center(child: Text('No hay solicitudes disponibles.'));
+                      }
+
+                      final filteredDocs = snapshot.data!.docs.where((doc) {
+                        if (_selectedSkills.isEmpty) return true;
+                        final data = doc.data() as Map<String, dynamic>;
+                        final tasks = data['tasks'] as Map<String, dynamic>? ?? {};
+                        final allTasks = <String>[
+                          ...(tasks['cuidados'] ?? []),
+                          ...(tasks['hogar'] ?? []),
+                        ].cast<String>().map((t) => t.toLowerCase());
+                        return _selectedSkills.any((skill) => allTasks.contains(skill));
+                      }).toList();
+
+                      if (filteredDocs.isEmpty) {
+                        return const Center(child: Text('No hay solicitudes que coincidan con los filtros.'));
+                      }
+
+                      return ListView.builder(
+                        itemCount: filteredDocs.length,
+                        itemBuilder: (context, index) {
+                          return _buildRequestCard(context, filteredDocs[index]);
+                        },
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            const Text(
-              '¡Estas personas te necesitan!',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('solicitudes').snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) return Center(child: Text('Error: \${snapshot.error}'));
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.data!.docs.isEmpty) {
-                    return const Center(child: Text('No hay solicitudes disponibles.'));
-                  }
-
-                  final filteredDocs = snapshot.data!.docs.where((doc) {
-                    if (_selectedSkills.isEmpty) return true;
-                    final data = doc.data() as Map<String, dynamic>;
-                    final tasks = data['tasks'] as Map<String, dynamic>? ?? {};
-                    final allTasks = <String>[
-                      ...(tasks['cuidados'] ?? []),
-                      ...(tasks['hogar'] ?? []),
-                    ].cast<String>().map((t) => t.toLowerCase());
-                    return _selectedSkills.any((skill) => allTasks.contains(skill));
-                  }).toList();
-
-                  if (filteredDocs.isEmpty) {
-                    return const Center(child: Text('No hay solicitudes que coincidan con los filtros.'));
-                  }
-
-                  return ListView.builder(
-                    itemCount: filteredDocs.length,
-                    itemBuilder: (context, index) {
-                      return _buildRequestCard(context, filteredDocs[index]);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
