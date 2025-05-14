@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:hogarya/presentation/screens/helper/profile_screen.dart';
+import 'package:hogarya/presentation/screens/profile_screen.dart';
 import '../../../application/controllers/desired_profiles_controller.dart';
 import '../../widgets/custom_header.dart';
 import 'add_job_profile_screen.dart';

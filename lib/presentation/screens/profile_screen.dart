@@ -2,10 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../login_screen.dart';
-import '../change_password_screen.dart';
-import '../../widgets/custom_header.dart';
-import 'select_skills_screen.dart';
+import 'package:hogarya/presentation/screens/change_password_screen.dart';
+import 'package:hogarya/presentation/screens/login_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../widgets/custom_header.dart';
+import 'helper/select_skills_screen.dart';
+import '../../application/controllers/profile_controller.dart'; 
 
 class ProfileScreen extends StatefulWidget {
   final String role;
@@ -15,11 +18,132 @@ class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
+
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _showPassword = false;
   Map<String, dynamic>? _userData;
+  File? _profileImage;
+  String? _profileImageUrl;
+  final ProfileController _profileController = ProfileController();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
 
+  
+  Future<void> _loadUserData() async {
+    final userData = await _profileController.loadUserData();
+    setState(() {
+      _userData = userData;
+      _profileImageUrl = _userData?['photoUrl'];  
+    });
+  }
+
+  
+  Future<void> _pickImage() async {
+    final image = await _profileController.pickImageFromGallery();
+    if (image != null) {
+      final imageUrl = await _profileController.uploadProfileImage(image);
+      if (imageUrl != null) {
+        setState(() {
+          _profileImage = image;
+          _profileImageUrl = imageUrl;  
+        });
+        await _profileController.saveProfileImageUrl(imageUrl); 
+      }
+    }
+  }
+
+ 
+  Future<void> _pickImageFromCamera() async {
+    final image = await _profileController.pickImageFromCamera();
+    if (image != null) {
+      final imageUrl = await _profileController.uploadProfileImage(image);
+      if (imageUrl != null) {
+        setState(() {
+          _profileImage = image;
+          _profileImageUrl = imageUrl;  
+        });
+        await _profileController.saveProfileImageUrl(imageUrl); 
+      }
+    }
+  }
+
+  void _showChangeEmailDialog() {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Cambiar correo electrónico'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Nuevo correo electrónico'),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Contraseña actual'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final user = FirebaseAuth.instance.currentUser;
+                final newEmail = emailController.text.trim();
+                final password = passwordController.text.trim();
+
+                if (user != null && newEmail.isNotEmpty && password.isNotEmpty) {
+                  try {
+                    final credential = EmailAuthProvider.credential(
+                      email: user.email!,
+                      password: password,
+                    );
+                    await user.reauthenticateWithCredential(credential);
+
+                    await user.verifyBeforeUpdateEmail(newEmail);
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Correo de verificación enviado.'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Enviar verificación'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+ 
   void _confirmDeleteAccount() {
     final passwordController = TextEditingController();
 
@@ -36,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Icon(Icons.warning, color: Colors.redAccent, size: 40),
               const SizedBox(height: 12),
               const Text(
-                'Estas a punto de eliminar tu cuenta',
+                'Estás a punto de eliminar tu cuenta',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -120,113 +244,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showChangeEmailDialog() {
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Cambiar correo electrónico'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Nuevo correo electrónico'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Contraseña actual'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final user = FirebaseAuth.instance.currentUser;
-                final newEmail = emailController.text.trim();
-                final password = passwordController.text.trim();
-
-                if (user != null && newEmail.isNotEmpty && password.isNotEmpty) {
-                  try {
-  
-                    final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(newEmail);
-                    if (methods.isNotEmpty) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('El correo ya está en uso por otra cuenta.'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
-
-                    final credential = EmailAuthProvider.credential(
-                      email: user.email!,
-                      password: password,
-                    );
-                    await user.reauthenticateWithCredential(credential);
-
-                    // Enviamos verificación al nuevo correo
-                    await user.verifyBeforeUpdateEmail(newEmail);
-
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Correo de verificación enviado. Haz clic en el enlace del nuevo correo para confirmar el cambio.',
-                        ),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
-                  } catch (e) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: ${e.toString()}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Enviar verificación'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-  @override
-  void initState() {
-    super.initState();
-    _loadUserData();
-  }
-
-  Future<void> _loadUserData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-
-    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
-    
-    if (doc.exists) {
-      setState(() {
-        _userData = doc.data();
-      });
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     if (_userData == null) {
@@ -247,6 +264,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Column(
         children: [
           const CustomHeader(title: 'Perfil'),
+        
+          Container(
+            width: 311,
+            height: 2,
+            color: const Color.fromRGBO(0, 0, 0, 0.20),
+            margin: const EdgeInsets.symmetric(vertical: 16),
+          ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -264,21 +288,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        SvgPicture.asset('assets/PhotoBackground.svg', height: 140),
-                        const CircleAvatar(
-                          radius: 48,
-                          backgroundImage: AssetImage('assets/images/avatar.png'),
+                        SvgPicture.asset('assets/PhotoBackground.svg', height: 180),
+                        CircleAvatar(
+                          radius: 90,
+                          backgroundImage: _profileImage != null || _profileImageUrl != null
+                              ? NetworkImage(_profileImageUrl ?? '')
+                              : const AssetImage('assets/images/avatar.png') as ImageProvider,
+                          child: _profileImage == null && _profileImageUrl == null
+                              ? const Icon(Icons.camera_alt, color: Colors.white, size: 40) 
+                              : null,
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.lightBlue,
-                              shape: BoxShape.circle,
+                          child: GestureDetector(
+                            onTap: _profileImage == null ? _pickImageFromCamera : _pickImage, 
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.lightBlue,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(6),
+                              child: Icon(
+                                _profileImage == null ? Icons.camera_alt : Icons.edit,  
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
-                            padding: const EdgeInsets.all(6),
-                            child: const Icon(Icons.edit, color: Colors.white, size: 18),
                           ),
                         ),
                       ],
@@ -434,4 +470,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 }
-

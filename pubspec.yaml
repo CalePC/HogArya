@@ -44,3 +44,6 @@ flutter:
     - assets/LogoHH.png
     - assets/customProfile.svg
     - assets/PhotoBackground.svg
+    - assets/icons/perfil_trabajo.svg
+    - assets/icons/resumen.svg
+    - assets/icons/contratantes.svg

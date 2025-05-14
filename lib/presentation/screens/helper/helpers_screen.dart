@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'profile_screen.dart';
-import 'helper_resume_screen.dart';
+import 'package:hogarya/application/controllers/helpers_controller.dart';
+import 'package:hogarya/presentation/screens/profile_screen.dart';
 import '../../widgets/custom_header.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HelpersScreen extends StatefulWidget {
   const HelpersScreen({super.key});
@@ -13,21 +12,11 @@ class HelpersScreen extends StatefulWidget {
 }
 
 class _HelpersScreenState extends State<HelpersScreen> {
+  final HelpersController _controller = HelpersController();
   final List<String> _selectedSkills = [];
-  final Map<String, String> _proposedSalary = {};
-  String? _expandedRequestId;
-  int _currentIndex = 0;
   String? _role;
-
-  final List<String> _availableSkills = [
-    'adultos mayores',
-    'niños',
-    'limpieza',
-    'mascotas',
-    'acompañamiento',
-    'vigilancia',
-    'alimentación',
-  ];
+  int _currentIndex = 0;
+  int _topTabSelected = 0;
 
   @override
   void initState() {
@@ -36,139 +25,8 @@ class _HelpersScreenState extends State<HelpersScreen> {
   }
 
   Future<void> _loadUserRole() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      final doc = await FirebaseFirestore.instance.collection('usuarios').doc(uid).get();
-      if (doc.exists) {
-        setState(() {
-          _role = doc['rol'];
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          CustomHeader(
-            onProfileTap: () {
-              if (_role != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ProfileScreen(role: _role!),
-                  ),
-                );
-              }
-            },
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 12),
-                const Text(
-                  '¡Estas personas te necesitan!',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _showFilterSheet,
-                      icon: const Icon(Icons.filter_list),
-                      label: const Text('Filtrar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[100],
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.work),
-                      label: const Text('Mi perfil de trabajo'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[100],
-                        foregroundColor: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.55,
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance.collection('solicitudes').snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.data!.docs.isEmpty) {
-                        return const Center(child: Text('No hay solicitudes disponibles.'));
-                      }
-
-                      final filteredDocs = snapshot.data!.docs.where((doc) {
-                        if (_selectedSkills.isEmpty) return true;
-                        final data = doc.data() as Map<String, dynamic>;
-                        final tasks = data['tasks'] as Map<String, dynamic>? ?? {};
-                        final allTasks = <String>[
-                          ...(tasks['cuidados'] ?? []),
-                          ...(tasks['hogar'] ?? []),
-                        ].cast<String>().map((t) => t.toLowerCase());
-                        return _selectedSkills.any((skill) => allTasks.contains(skill));
-                      }).toList();
-
-                      if (filteredDocs.isEmpty) {
-                        return const Center(child: Text('No hay solicitudes que coincidan con los filtros.'));
-                      }
-
-                      return ListView.builder(
-                        itemCount: filteredDocs.length,
-                        itemBuilder: (context, index) {
-                          return _buildRequestCard(context, filteredDocs[index]);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const HelperResumeScreen()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Perfil de trabajo'),
-          BottomNavigationBarItem(icon: Icon(Icons.summarize), label: 'Resumen'),
-          BottomNavigationBarItem(icon: Icon(Icons.handyman), label: 'Ayudantes'),
-        ],
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-      ),
-    );
+    _role = await _controller.getUserRole();
+    setState(() {});
   }
 
   void _showFilterSheet() {
@@ -181,15 +39,14 @@ class _HelpersScreenState extends State<HelpersScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  'Filtrar por habilidades',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
+                const Text('Filtrar por habilidades', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: _availableSkills.map((skill) {
+                  children: [
+                    'adultos mayores', 'niños', 'limpieza', 'mascotas', 'acompañamiento', 'vigilancia', 'alimentación'
+                  ].map((skill) {
                     final isSelected = _selectedSkills.contains(skill);
                     return FilterChip(
                       label: Text(skill),
@@ -222,94 +79,227 @@ class _HelpersScreenState extends State<HelpersScreen> {
     );
   }
 
-  Widget _buildRequestCard(BuildContext context, DocumentSnapshot document) {
-    final data = document.data() as Map<String, dynamic>;
-    final cantidadPago = data['cantidad_pago'] as num? ?? 0;
-    final fechaFin = data['fecha_fin'] as String? ?? 'Fecha fin no disponible';
-    final fechaInicio = data['fecha_inicio'] as String? ?? 'Fecha inicio no disponible';
-    final periodicidadPago = data['periodicidad_pago'] as String? ?? 'Pago no disponible';
-    final tasks = data['tasks'] as Map<String, dynamic>? ?? {};
-    final cuidados = (tasks['cuidados'] as List<dynamic>?)?.cast<String>() ?? [];
-    final hogar = (tasks['hogar'] as List<dynamic>?)?.cast<String>() ?? [];
-    final isExpanded = _expandedRequestId == document.id;
+  void _postular(String solicitudId) {
+    _controller.postularAOferta(
+      solicitudId: solicitudId,
+      contraoferta: 0,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Te has postulado a esta oferta')),
+    );
+  }
 
+  Widget _buildTopNavigation() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildTopNavItem(0, Icons.search, 'Buscar'),
+          _buildTopNavItem(1, Icons.work, 'Mi perfil de trabajo'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopNavItem(int index, IconData icon, String label) {
+    final isSelected = _topTabSelected == index;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _expandedRequestId = isExpanded ? null : document.id;
+          _topTabSelected = index;
         });
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16.0),
+        width: 156,
+        height: 82,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue[50]!, Colors.blue[100]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(10.0),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
+          color: isSelected ? const Color(0xFFD3EEFF) : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30),
+            const SizedBox(height: 4),
+            Text(label),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Column(
             children: [
-              Text('Cantidad Pago: \$${cantidadPago.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0)),
-              Text('Fecha Inicio: $fechaInicio'),
-              Text('Fecha Fin: $fechaFin'),
-              Text('Periodicidad Pago: $periodicidadPago'),
-              Text('Cuidados: ${cuidados.join(', ')}'),
-              Text('Hogar: ${hogar.join(', ')}'),
-              if (isExpanded) ...[
-                const SizedBox(height: 10),
-                TextField(
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Proponer contraoferta (\$)',
-                    border: OutlineInputBorder(),
+              CustomHeader(
+                onProfileTap: () {
+                  if (_role != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => ProfileScreen(role: _role!)),
+                    );
+                  }
+                },
+              ),
+              _buildTopNavigation(),
+              Container(
+                width: 412,
+                height: 37,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ShaderMask(
+                  shaderCallback: (bounds) => const LinearGradient(
+                    colors: [Color(0xFF4ABAFF), Color(0xFF4A66FF)],
+                  ).createShader(bounds),
+                  child: const Text(
+                    '¡Estas personas te necesitan!',
+                    style: TextStyle(
+                      fontFamily: 'Instrument Sans',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _proposedSalary[document.id] = value;
-                    });
-                  },
                 ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () async {
-                    final helperId = FirebaseAuth.instance.currentUser?.uid;
-                    final contraoferta = _proposedSalary[document.id];
-
-                    if (helperId != null && contraoferta != null) {
-                      await FirebaseFirestore.instance.collection('postulaciones').add({
-                        'solicitudId': document.id,
-                        'helperId': helperId,
-                        'contraoferta': double.tryParse(contraoferta) ?? 0.0,
-                        'estado': 'pendiente',
-                        'fecha': Timestamp.now(),
-                        'contractorId': '',
-                      });
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Solicitud enviada al contratante.')),
-                      );
+              ),
+              Expanded(
+                child: StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: _controller.getSolicitudesConDatosContractor(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
                     }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No hay solicitudes disponibles.'));
+                    }
+
+                    final items = _controller.filtrarSolicitudes(snapshot.data!, _selectedSkills);
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final solicitud = items[index]['solicitud'];
+                        final contractor = items[index]['contractor'];
+                        final bool viveEnCoatza = contractor['viveEnCoatzacoalcos'] == true;
+
+                        return Center(
+                          child: Container(
+                            width: 380,
+                            height: 341,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(30),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color.fromRGBO(202, 241, 255, 0.5),
+                                  Color.fromRGBO(74, 186, 255, 0.5),
+                                ],
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: Colors.white,
+                                    child: Icon(Icons.person, size: 40),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    contractor['nombre'] ?? 'Sin nombre',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                  ),
+                                  Text("Sexo: ${contractor['sexo'] ?? 'N/D'}"),
+                                  Text("Edad: ${contractor['edad']?.toString() ?? 'N/D'}"),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        viveEnCoatza
+                                            ? "Radica en Coatzacoalcos"
+                                            : "Fuera de alcance",
+                                      ),
+                                      const SizedBox(width: 5),
+                                      const Icon(Icons.location_on, size: 18, color: Colors.red),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    onPressed: () => _postular(items[index]['solicitudId']),
+                                    child: const Text("Postularse"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                  child: const Text("Aceptar y enviar contraoferta"),
                 ),
-              ]
+              ),
             ],
           ),
-        ),
+          Positioned(
+            bottom: 5,
+            right: 16,
+            child: FloatingActionButton.extended(
+              onPressed: _showFilterSheet,
+              icon: const Icon(Icons.filter_list),
+              label: const Text('Filtrar'),
+              backgroundColor: Colors.lightBlue[100],
+              foregroundColor: Colors.black,
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              'assets/icons/perfil_trabajo.svg',
+              height: 35,
+            ),
+            label: 'Perfil de trabajo',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              'assets/icons/resumen.svg',
+              height: 40,
+            ),
+            label: 'Resumen',
+          ),
+          BottomNavigationBarItem(
+            icon: SvgPicture.asset(
+              'assets/icons/contratantes.svg',
+              height: 50,
+            ),
+            label: 'Contratantes',
+          ),
+        ],
       ),
     );
   }
