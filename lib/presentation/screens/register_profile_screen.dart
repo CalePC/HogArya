@@ -91,20 +91,10 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
 
         if (controller.selectedRole == 'helper') {
           Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SelectSkillsScreen(
-                userData: {
-                  'uid': uid,
-                  'nombre': name,
-                  'sexo': controller.selectedGender,
-                  'edad': age,
-                  'viveEnCoatzacoalcos': controller.livesInCoatzacoalcos,
-                },
-              ),
-            ),
-            (route) => false,
-          );
+          context,
+          MaterialPageRoute(builder: (_) => const SelectSkillsScreen(fromRegistro: true)),
+          (route) => false,
+        );
         } else {
           Navigator.pushAndRemoveUntil(
             context,

@@ -93,9 +93,7 @@ class ContractorResumeScreen extends StatelessWidget {
               final isCompleted = taskData['completada'];
               final formattedTime = taskData['fecha'];
               final taskId = taskData['taskId'];
-             // final solicitudId = taskData['solicitudId'];
-             // final tipo = taskData['tipo'];
-
+         
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(12),
@@ -114,7 +112,7 @@ class ContractorResumeScreen extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Imagen de la tarea
+                    // Imagen de la tarea, falta subir a bd
                     imageUrl.isNotEmpty
                         ? Image.network(
                       imageUrl,

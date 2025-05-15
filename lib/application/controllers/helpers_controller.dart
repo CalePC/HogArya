@@ -76,4 +76,16 @@ class HelpersController {
       'contractorId': '',
     });
   }
+
+  Future<List<String>> getHabilidadesHelper() async {
+  final uid = _auth.currentUser?.uid;
+  if (uid == null) return [];
+
+  final doc = await _firestore.collection('usuarios').doc(uid).get();
+  if (!doc.exists) return [];
+
+  final data = doc.data();
+  final habilidades = data?['habilidades'] as List<dynamic>? ?? [];
+  return habilidades.cast<String>();
+  }
 }
