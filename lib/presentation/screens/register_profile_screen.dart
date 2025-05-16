@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/register_profile_controller.dart';
 import 'package:hogarya/presentation/screens/helper/select_skills_screen.dart';
-import 'package:hogarya/presentation/screens/contractor/redirection_driver.dart';
+import 'package:hogarya/application/controllers/redirection_driver.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -137,7 +137,7 @@ class _RegisterProfileScreenState extends State<RegisterProfileScreen> {
                       ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                       blendMode: BlendMode.srcIn,
                       child: const Text(
-                        'Registro a HouSeHelp',
+                        'Registro a HogArya',
                         style: TextStyle(
                           fontFamily: 'Instrument Sans',
                           fontSize: 28,

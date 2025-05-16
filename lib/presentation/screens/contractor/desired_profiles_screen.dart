@@ -138,6 +138,7 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
           ),
         ],
       ),
+      //
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -158,7 +159,7 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Ayudantes'),
         ],
         selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.black,
       ),
     );
   }

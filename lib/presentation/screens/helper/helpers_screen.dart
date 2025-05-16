@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hogarya/application/controllers/helpers_controller.dart';
+import 'package:hogarya/presentation/screens/helper/ratings_screen.dart';
 import 'package:hogarya/presentation/screens/profile_screen.dart';
 import '../../widgets/custom_header.dart';
 import 'package:hogarya/presentation/screens/helper/select_skills_screen.dart';
@@ -396,66 +397,160 @@ class _HelpersScreenState extends State<HelpersScreen> {
               onPressed: _showFilterSheet,
               icon: const Icon(Icons.filter_list),
               label: const Text('Filtrar'),
-              backgroundColor: Colors.lightBlue[100],
+              backgroundColor: Colors.lightBlue[400],
               foregroundColor: Colors.black,
             ),
           ),
         
         if (_topTabSelected == 1)
           Positioned(
-            bottom: 70,
+            bottom: 10,
+            left: 16,
             right: 16,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SelectSkillsScreen()),
-                );
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFD3EEFF),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RatingsScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: 196,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlue[300],
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ],
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "Ver mis calificaciones",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 ),
-                padding: const EdgeInsets.all(10),
-                child: SvgPicture.asset(
-                  'assets/icons/pencil.svg',
-                  fit: BoxFit.contain,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SelectSkillsScreen()),
+                    );
+                  },
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.lightBlue[300],
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    child: SvgPicture.asset(
+                      'assets/icons/pencil.svg',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 10,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Color.fromRGBO(52, 52, 52, 0.2),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
           ),
       ],
     ),
+
     bottomNavigationBar: BottomNavigationBar(
       currentIndex: _bottomIndex,
       onTap: (index) {
         setState(() => _bottomIndex = index);
       },
-      items: [
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/perfil_trabajo.svg', height: 35),
-          label: 'Perfil de trabajo',
-        ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/resumen.svg', height: 40),
-          label: 'Resumen',
-        ),
-        BottomNavigationBarItem(
-          icon: SvgPicture.asset('assets/icons/contratantes.svg', height: 50),
-          label: 'Contratantes',
-        ),
-      ],
+      items: List.generate(3, (index) {
+        final isActive = _bottomIndex == index;
+
+        final icons = [
+          'assets/icons/perfil_trabajo.svg',
+          'assets/icons/resumen.svg',
+          'assets/icons/contratantes.svg',
+        ];
+        final labels = ['Perfil de trabajo', 'Resumen', 'Contratantes'];
+
+        return BottomNavigationBarItem(
+          label: '',
+          icon: Container(
+            width: 148,
+            height: 87,
+            decoration: isActive
+                ? BoxDecoration(
+                    color: const Color.fromRGBO(167, 216, 246, 0.5),
+                    borderRadius: BorderRadius.circular(60),
+                  )
+                : null,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SvgPicture.asset(
+                  icons[index],
+                  height: 35 + (index == 2 ? 15 : 0),
+                  colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  labels[index],
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+      selectedFontSize: 0,
+      unselectedFontSize: 0,
+      showSelectedLabels: false,
+      showUnselectedLabels: false,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
     ),
+
   );
 
 

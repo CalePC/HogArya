@@ -80,7 +80,7 @@ class _RegisterAccountScreenState extends State<RegisterAccountScreen> {
                   ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
                   blendMode: BlendMode.srcIn,
                   child: const Text(
-                    'Registro a HouSeHelp',
+                    'Registro a HogArya',
                     style: TextStyle(
                       fontFamily: 'Instrument Sans',
                       fontSize: 32,
