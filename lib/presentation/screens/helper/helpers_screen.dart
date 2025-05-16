@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hogarya/application/controllers/helpers_controller.dart';
 import 'package:hogarya/presentation/screens/helper/ratings_screen.dart';
+import 'package:hogarya/presentation/screens/helper/requests_details_screen.dart';
 import 'package:hogarya/presentation/screens/profile_screen.dart';
 import '../../widgets/custom_header.dart';
 import 'package:hogarya/presentation/screens/helper/select_skills_screen.dart';
@@ -267,8 +268,21 @@ class _HelpersScreenState extends State<HelpersScreen> {
                       ),
                       const SizedBox(height: 10),
                       ElevatedButton(
-                        onPressed: () => _postular(items[index]['solicitudId']),
-                        child: const Text("Postularse"),
+                        onPressed: () {
+                          final solicitudId = items[index]['solicitudId'];
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RequestsDetailsScreen(requestId: solicitudId),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.lightBlue[200],
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: const Text("Detalles"),
                       ),
                     ],
                   ),

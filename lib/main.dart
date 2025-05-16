@@ -3,7 +3,7 @@ import 'package:hogarya/application/controllers/redirection_driver.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'presentation/screens/login_screen.dart'; 
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'HouseHelp',
+      title: 'HogArya',
       locale: const Locale('es', 'ES'), // Establece el idioma predeterminado
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

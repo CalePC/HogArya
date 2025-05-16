@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hogarya/application/controllers/ratings_controller.dart';
 import 'package:hogarya/presentation/widgets/custom_header.dart';
 
-class RatingsScreen extends StatelessWidget {
+class RatingsScreen extends StatefulWidget {
   const RatingsScreen({super.key});
+
+  @override
+  State<RatingsScreen> createState() => _RatingsScreenState();
+}
+
+class _RatingsScreenState extends State<RatingsScreen> {
+  final RatingsController _controller = RatingsController();
+
+  int _bottomIndex = 0;
+  List<String> _areas = [];
+  double _promedio = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRatings();
+  }
+
+  Future<void> _loadRatings() async {
+    final areas = await _controller.getAreasDestacadas();
+    final promedio = await _controller.getPromedioCalificaciones();
+    setState(() {
+      _areas = areas;
+      _promedio = promedio;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +39,7 @@ class RatingsScreen extends StatelessWidget {
         children: [
           Column(
             children: [
-              const CustomHeader(title: "Mis calificaciones"),
+              const CustomHeader(),
               const SizedBox(height: 10),
               ShaderMask(
                 shaderCallback: (bounds) => const LinearGradient(
@@ -36,26 +63,53 @@ class RatingsScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               const SizedBox(height: 16),
-              _buildTag("Niños", highlighted: true),
-              const SizedBox(height: 12),
-              _buildTag("Alimentación"),
+
+              _areas.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD3EEFF),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: const Text(
+                          "Aún no has recibido calificaciones destacadas.\nSigue trabajando con dedicación.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    )
+                  : Column(
+                      children: _areas
+                          .asMap()
+                          .entries
+                          .map((entry) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _buildTag(entry.value, highlighted: entry.key == 0),
+                              ))
+                          .toList(),
+                    ),
+
               const SizedBox(height: 30),
-              const Text("Calificación promedio",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+              const Text(
+                "Calificación promedio",
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "4.5",
-                    style: TextStyle(
+                  Text(
+                    _promedio.toStringAsFixed(1),
+                    style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(width: 8),
                   SvgPicture.asset(
-                    'assets/icons/star.svg', 
+                    'assets/icons/star.svg',
                     width: 40,
                     height: 40,
                   ),
@@ -66,6 +120,61 @@ class RatingsScreen extends StatelessWidget {
             ],
           ),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _bottomIndex,
+        onTap: (index) {
+          setState(() => _bottomIndex = index);
+          // Navegación funcional puedes integrarla aquí si es necesario
+        },
+        items: List.generate(3, (index) {
+          final isActive = _bottomIndex == index;
+          final icons = [
+            'assets/icons/perfil_trabajo.svg',
+            'assets/icons/resumen.svg',
+            'assets/icons/contratantes.svg',
+          ];
+          final labels = ['Perfil de trabajo', 'Resumen', 'Contratantes'];
+
+          return BottomNavigationBarItem(
+            label: '',
+            icon: Container(
+              width: 148,
+              height: 87,
+              decoration: isActive
+                  ? BoxDecoration(
+                      color: const Color.fromRGBO(167, 216, 246, 0.5),
+                      borderRadius: BorderRadius.circular(60),
+                    )
+                  : null,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    icons[index],
+                    height: 35 + (index == 2 ? 15 : 0),
+                    colorFilter: const ColorFilter.mode(Colors.black, BlendMode.srcIn),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    labels[index],
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+        selectedFontSize: 0,
+        unselectedFontSize: 0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
     );
   }

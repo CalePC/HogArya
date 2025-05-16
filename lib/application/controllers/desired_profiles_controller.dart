@@ -70,7 +70,7 @@ class DesiredProfilesController {
   }
 
   Future<String?> getHelperName(String helperId) async {
-    final doc = await _db.collection('users').doc(helperId).get();
+    final doc = await _db.collection('usuarios').doc(helperId).get();
     if (!doc.exists) return null;
     return doc['nombre'];
   }

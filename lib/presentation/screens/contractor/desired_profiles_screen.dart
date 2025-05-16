@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hogarya/presentation/screens/contractor/postulations_screen.dart';
 import 'package:hogarya/presentation/screens/profile_screen.dart';
+
 import '../../../application/controllers/desired_profiles_controller.dart';
 import '../../widgets/custom_header.dart';
 import 'add_job_profile_screen.dart';
@@ -331,60 +333,17 @@ class RequestCard extends StatelessWidget {
       return;
     }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: postulaciones.length,
-          itemBuilder: (context, i) {
-            final post = postulaciones[i];
-            return Card(
-              child: ListTile(
-                title: FutureBuilder<String?>(
-                  future: controller.getHelperName(post['helperId']),
-                  builder: (context, snap) {
-                    if (snap.connectionState == ConnectionState.waiting) return const Text("Cargando...");
-                    final name = snap.data ?? 'Sin nombre';
-                    return Text(name, style: const TextStyle(fontWeight: FontWeight.bold));
-                  },
-                ),
-                subtitle: Text("Contraoferta: \$${post['contraoferta']}"),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.check, color: Colors.green),
-                      onPressed: () async {
-                        await controller.acceptPostulation(
-                          postId: post['id'],
-                          helperId: post['helperId'],
-                          solicitudId: request['id'],
-                        );
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Postulación aceptada y tareas asignadas')),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.red),
-                      onPressed: () async {
-                        await controller.rejectPostulation(post['id']);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Postulación rechazada')),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PostulacionesScreen(
+          solicitudId: request['id'],
+          controller: controller,
+          onSuccess: onUpdated,
         ),
       ),
     );
   }
+
 }
+  

@@ -66,7 +66,6 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
             const Text("¿Cómo ha sido tu experiencia con ?", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
 
-            // Estrellas para calificación
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
