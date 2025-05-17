@@ -125,7 +125,8 @@ class _RatingsScreenState extends State<RatingsScreen> {
         currentIndex: _bottomIndex,
         onTap: (index) {
           setState(() => _bottomIndex = index);
-          // Navegación funcional puedes integrarla aquí si es necesario
+          // Navegación funcional después
+          
         },
         items: List.generate(3, (index) {
           final isActive = _bottomIndex == index;

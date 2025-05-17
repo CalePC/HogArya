@@ -140,7 +140,7 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
           ),
         ],
       ),
-      //
+      
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

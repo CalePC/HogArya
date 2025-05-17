@@ -5,40 +5,51 @@ class MyHelpersController {
   final uid = FirebaseAuth.instance.currentUser!.uid;
 
   Future<List<Map<String, dynamic>>> fetchAyudantes() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('postulaciones')
-        .where('contractorId', isEqualTo: uid)
-        .where('estado', isEqualTo: 'aceptado')
-        .get();
-
-    List<Map<String, dynamic>> ayudantes = [];
-
-    for (var doc in querySnapshot.docs) {
-      final data = doc.data();
-      data['id'] = doc.id;
-
-      final solicitudDoc = await FirebaseFirestore.instance
-          .collection('solicitudes')
-          .doc(data['solicitudId'])
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('postulaciones')
+          .where('contractorId', isEqualTo: uid)
+          .where('estado', isEqualTo: 'aceptado')
           .get();
-      final solicitudData = solicitudDoc.data();
-      if (solicitudData != null) {
-        data['solicitud'] = solicitudData;
+
+      List<Map<String, dynamic>> ayudantes = [];
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+
+        final solicitudDoc = await FirebaseFirestore.instance
+            .collection('solicitudes')
+            .doc(data['solicitudId'])
+            .get();
+        if (solicitudDoc.exists) {
+          data['solicitud'] = solicitudDoc.data();
+        }
+
+        final helperId = data['helperId'];
+        if (helperId != null && helperId.toString().trim().isNotEmpty) {
+          final helperDoc = await FirebaseFirestore.instance
+              .collection('usuarios')
+              .doc(helperId)
+              .get();
+
+          if (helperDoc.exists) {
+            data['helper'] = helperDoc.data();
+          } else {
+            data['helper'] = {}; 
+          }
+        } else {
+          data['helper'] = {};
+        }
+
+        ayudantes.add(data);
       }
 
-      final helperDoc = await FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(data['helperId'])
-          .get();
-      final helperData = helperDoc.data();
-      if (helperData != null) {
-        data['helper'] = helperData;
-      }
-
-      ayudantes.add(data);
+      return ayudantes;
+    } catch (e) {
+      print('Error al obtener ayudantes: $e');
+      rethrow;
     }
-
-    return ayudantes;
   }
 
   Future<void> despedirAyudante(String postulacionId) async {

@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'redirection_driver.dart';
 import '../../presentation/screens/helper/helpers_screen.dart';
-import '../../presentation/screens/super/super_user_screen.dart';
 import '../../presentation/screens/register_account_screen.dart';
 import '../../presentation/screens/register_profile_screen.dart';
 
@@ -34,8 +33,6 @@ class AuthController {
         nextScreen = const HelpersScreen();
       } else if (role == 'contractor') {
         nextScreen = const RedirectionDriver();
-      } else if (role == 'super') {
-        nextScreen = const SuperUserScreen();
       } else {
         onError('Rol desconocido.');
         return;

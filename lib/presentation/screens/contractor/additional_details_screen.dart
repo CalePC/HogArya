@@ -104,7 +104,7 @@ class _AdditionalDetailsScreenState extends State<AdditionalDetailsScreen> {
                 rangeStartDay: startDate,
                 rangeEndDay: endDate,
               ),
-              const SizedBox(height: 100), // Espacio inferior para que no quede tapado por el botón
+              const SizedBox(height: 100), 
             ],
           ),
         ),

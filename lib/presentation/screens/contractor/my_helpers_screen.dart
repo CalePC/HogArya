@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/my_helpers_controller.dart';
-import 'package:hogarya/presentation/screens/contractor/RateHelperScreen.dart';
+import 'package:hogarya/presentation/screens/contractor/rate_helpers_list_screen.dart';
 import 'package:hogarya/presentation/widgets/custom_header.dart';
 import 'package:hogarya/presentation/widgets/persistent_bottom_nav.dart';
 
@@ -13,6 +13,13 @@ class MyHelpersScreen extends StatefulWidget {
 
 class _MyHelpersScreenState extends State<MyHelpersScreen> {
   final controller = MyHelpersController();
+  late Future<List<Map<String, dynamic>>> _ayudantesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _ayudantesFuture = controller.fetchAyudantes();
+  }
 
   Future<void> _despedirAyudante(String postulacionId) async {
     try {
@@ -20,7 +27,9 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ayudante despedido exitosamente')),
       );
-      setState(() {}); // Recargar lista
+      setState(() {
+        _ayudantesFuture = controller.fetchAyudantes();
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al despedir ayudante: $e")),
@@ -29,20 +38,17 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
   }
 
   void _administrarTareas(String helperId) {
-    // Pendiente implementación
+    
   }
 
   void _irACalificar() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const RateHelperScreen(
-          helperName: 'Ayudantes',
-          helperId: '', // opcional, dependerá de cómo implementes pestaña
-        ),
-      ),
-    );
-  }
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const RateHelpersListScreen(),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +57,6 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Fondo degradado
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -66,8 +71,6 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
               ),
             ),
           ),
-
-          // Contenido principal
           Column(
             children: [
               const CustomHeader(title: 'Tus ayudantes'),
@@ -77,30 +80,33 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                 height: 1,
                 color: Colors.black.withOpacity(0.2),
               ),
-              // Contenido limitado en altura
-              SizedBox(
-                height: 568,
+              Expanded(
                 child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: controller.fetchAyudantes(),
+                  future: _ayudantesFuture,
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    final ayudantes = snapshot.data!;
+                    if (snapshot.hasError) {
+                      return Center(
+                          child: Text("Error: ${snapshot.error.toString()}"));
+                    }
+
+                    final ayudantes = snapshot.data ?? [];
+
                     if (ayudantes.isEmpty) {
                       return const Center(
-                          child: Text("No tienes ayudantes vinculados."));
+                        child: Text("No tienes ayudantes vinculados."),
+                      );
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 20),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                       itemCount: ayudantes.length,
                       itemBuilder: (context, index) {
                         final ayudante = ayudantes[index];
-                        final nombre =
-                            ayudante['helper']['nombre'] ?? 'Nombre no disponible';
+                        final nombre = (ayudante['helper']?['nombre'] ?? 'Nombre no disponible') as String;
                         final helperId = ayudante['helperId'];
                         final solicitud = ayudante['solicitud'];
                         final postulacionId = ayudante['id'];
@@ -183,8 +189,6 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
               ),
             ],
           ),
-
-          // ✅ Botón fijo para calificar
           Positioned(
             bottom: 80,
             right: 20,
@@ -195,8 +199,6 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
               icon: const Icon(Icons.star),
             ),
           ),
-
-          // División decorativa sobre la barra de navegación
           Positioned(
             bottom: 76,
             left: 0,
@@ -215,8 +217,6 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
               ),
             ),
           ),
-
-          // ✅ Barra inferior
           const PersistentBottomNav(currentIndex: 2),
         ],
       ),

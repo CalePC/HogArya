@@ -66,7 +66,7 @@ class ContractorResumeScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>( // Usamos FutureBuilder para manejar los datos asincrónicos
+      body: FutureBuilder<List<Map<String, dynamic>>>( 
         future: _getTaskReports(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

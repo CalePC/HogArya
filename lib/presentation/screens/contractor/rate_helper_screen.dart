@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hogarya/application/controllers/rate_helper_controller.dart';
+
 
 class RateHelperScreen extends StatefulWidget {
   final String helperName;
   final String helperId;
-  const RateHelperScreen({super.key, required this.helperName, required this.helperId});
+
+  const RateHelperScreen({
+    super.key,
+    required this.helperName,
+    required this.helperId,
+  });
 
   @override
-  _RateHelperScreenState createState() => _RateHelperScreenState();
+  State<RateHelperScreen> createState() => _RateHelperScreenState();
 }
 
 class _RateHelperScreenState extends State<RateHelperScreen> {
+  final RateHelperController controller = RateHelperController();
+
   double _rating = 3.0;
   final List<String> _areasDestacadas = [];
   final TextEditingController _comentariosController = TextEditingController();
@@ -19,38 +26,22 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
   final List<String> areas = ["Niños", "Alimentación", "Mascotas", "Limpieza"];
 
   Future<void> _submitRating() async {
-    final comentarios = _comentariosController.text;
-
     try {
+      await controller.submitRating(
+        helperId: widget.helperId,
+        rating: _rating,
+        comentarios: _comentariosController.text,
+        areasDestacadas: _areasDestacadas,
+      );
 
-      await FirebaseFirestore.instance.collection('calificaciones').add({
-        'calificadoId': widget.helperId,
-        'calificadorId': FirebaseAuth.instance.currentUser!.uid,
-        'calificacion': _rating,
-        'comentarios': comentarios,
-        'areasDestacadas': _areasDestacadas,
-        'fecha': FieldValue.serverTimestamp(),
-      });
-
-      final helperDoc = await FirebaseFirestore.instance.collection('usuarios').doc(widget.helperId).get();
-      final helperData = helperDoc.data();
-      if (helperData != null) {
-        double currentAvg = helperData['calificacionPromedio'] ?? 0;
-        int totalRatings = helperData['totalRatings'] ?? 0;
-
-        double newAvg = (currentAvg * totalRatings + _rating) / (totalRatings + 1);
-
-        await FirebaseFirestore.instance.collection('usuarios').doc(widget.helperId).update({
-          'calificacionPromedio': newAvg,
-          'totalRatings': totalRatings + 1,
-        });
-      }
-
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Calificación enviada con éxito')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Calificación enviada con éxito')),
+      );
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error al enviar la calificación: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al enviar la calificación: $e")),
+      );
     }
   }
 
@@ -60,10 +51,9 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
       appBar: AppBar(title: Text("Calificar a ${widget.helperName}")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
-            const Text("¿Cómo ha sido tu experiencia con ?", style: TextStyle(fontSize: 18)),
+            const Text("¿Cómo ha sido tu experiencia con?", style: TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
 
             Row(
@@ -72,7 +62,7 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
                 return IconButton(
                   icon: Icon(
                     index < _rating ? Icons.star : Icons.star_border,
-                    color: Colors.yellow,
+                    color: Colors.yellow[700],
                   ),
                   onPressed: () {
                     setState(() {
@@ -105,7 +95,7 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
             ),
             const SizedBox(height: 20),
 
-            const Text("Comentarios - opcional:", style: TextStyle(fontSize: 16)),
+            const Text("Comentarios (opcional):", style: TextStyle(fontSize: 16)),
             TextField(
               controller: _comentariosController,
               maxLines: 4,
@@ -114,12 +104,16 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
                 hintText: "Escribe tus comentarios aquí...",
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             Center(
               child: ElevatedButton(
                 onPressed: _submitRating,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(150, 50)),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(150, 50),
+                  backgroundColor: Colors.lightBlue,
+                  foregroundColor: Colors.white,
+                ),
                 child: const Text("Enviar"),
               ),
             ),
@@ -129,4 +123,3 @@ class _RateHelperScreenState extends State<RateHelperScreen> {
     );
   }
 }
-

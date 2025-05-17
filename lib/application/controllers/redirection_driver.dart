@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hogarya/presentation/screens/contractor/desired_profiles_screen.dart';
 import 'package:hogarya/presentation/screens/helper/helpers_screen.dart';
 import 'package:hogarya/presentation/screens/login_screen.dart';
-import 'package:hogarya/presentation/screens/super/super_user_screen.dart';
 
 
 class RedirectionDriver extends StatefulWidget {
@@ -46,8 +45,6 @@ class _RedirectionDriverState extends State<RedirectionDriver> {
             : const DesiredProfilesScreen();
       } else if (role == 'helper') {
         target = const HelpersScreen();
-      } else if (role == 'super') {
-        target = const SuperUserScreen();
       }
     }
 

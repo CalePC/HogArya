@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/request_details_controller.dart';
+
 
 class RequestsDetailsScreen extends StatefulWidget {
   final String requestId;
@@ -14,9 +13,11 @@ class RequestsDetailsScreen extends StatefulWidget {
 
 class _RequestsDetailsScreenState extends State<RequestsDetailsScreen> {
   final controller = RequestDetailsController();
+
   Map<String, dynamic>? requestData;
   Map<String, dynamic>? contractorData;
   bool isLoading = true;
+  bool _yaPostulado = false;
   String? errorMessage;
 
   @override
@@ -24,30 +25,6 @@ class _RequestsDetailsScreenState extends State<RequestsDetailsScreen> {
     super.initState();
     _loadData();
   }
-
-  void _postular() async {
-    try {
-      final helperId = FirebaseAuth.instance.currentUser!.uid;
-
-      await FirebaseFirestore.instance.collection('postulaciones').add({
-        'solicitudId': widget.requestId,
-        'helperId': helperId,
-        'estado': 'pendiente',
-        'contraoferta': 0,
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Te has postulado a esta oferta')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al postularte: $e')),
-      );
-    }
-  }
-
-
 
   Future<void> _loadData() async {
     try {
@@ -60,11 +37,28 @@ class _RequestsDetailsScreenState extends State<RequestsDetailsScreen> {
         if (contractorData == null) {
           errorMessage = 'No se encontró el perfil del solicitante.';
         }
+        _yaPostulado = await controller.hasAlreadyApplied(widget.requestId);
       }
     } catch (e) {
       errorMessage = 'Error al cargar los detalles: $e';
     } finally {
       setState(() => isLoading = false);
+    }
+  }
+
+  void _postular() async {
+    try {
+      await controller.postularAOferta(widget.requestId);
+      setState(() {
+        _yaPostulado = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Te has postulado a esta oferta')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al postularte: $e')),
+      );
     }
   }
 
@@ -160,9 +154,9 @@ class _RequestsDetailsScreenState extends State<RequestsDetailsScreen> {
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton.icon(
-                    onPressed: _postular,
-                    icon: const Icon(Icons.check_circle),
-                    label: const Text("Postularme a esta solicitud"),
+                    onPressed: _yaPostulado ? null : _postular,
+                    icon: Icon(_yaPostulado ? Icons.check : Icons.send),
+                    label: Text(_yaPostulado ? "Ya te postulaste" : "Postularme a esta solicitud"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.lightBlue,
                       foregroundColor: Colors.black,
