@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/my_helpers_controller.dart';
+import 'package:hogarya/presentation/screens/contractor/manage_task_screen.dart';
 import 'package:hogarya/presentation/screens/contractor/rate_helpers_list_screen.dart';
 import 'package:hogarya/presentation/widgets/custom_header.dart';
 import 'package:hogarya/presentation/widgets/persistent_bottom_nav.dart';
@@ -37,9 +38,19 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
     }
   }
 
-  void _administrarTareas(String helperId) {
-    
+  void _administrarTareas(String helperId, String nombre, String photoUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ManageTasksScreen(
+          helperId: helperId,
+          helperName: nombre,
+          helperPhotoUrl: photoUrl,
+        ),
+      ),
+    );
   }
+
 
   void _irACalificar() {
   Navigator.push(
@@ -172,7 +183,7 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                                     ),
                                     ElevatedButton(
                                       onPressed: () =>
-                                          _administrarTareas(helperId),
+                                          _administrarTareas(helperId, nombre, ayudante['helper']['photoUrl'] ?? '',),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color.fromRGBO(123, 216, 255, 1),
                                         foregroundColor: Colors.black,
@@ -228,4 +239,5 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
       ),
     );
   }
+  
 }

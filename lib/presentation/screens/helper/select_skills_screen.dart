@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/select_skills_controller.dart';
+import 'package:hogarya/presentation/screens/helper/helper_main_screen.dart';
 import 'package:hogarya/presentation/screens/helper/helpers_screen.dart';
 
 class SelectSkillsScreen extends StatefulWidget {
@@ -47,7 +48,7 @@ class _SelectSkillsScreenState extends State<SelectSkillsScreen> {
     if (widget.fromRegistro) {
       Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (_) => const HelpersScreen()),
+          MaterialPageRoute(builder: (_) => const HelperMainScreen()),
           (route) => false,
         );
     } else {

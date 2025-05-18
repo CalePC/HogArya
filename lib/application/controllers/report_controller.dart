@@ -14,7 +14,7 @@ class ReportController {
     final existing = await FirebaseFirestore.instance
         .collection('reportes')
         .where('reportadoId', isEqualTo: helperId)
-        .where('reportadorId', isEqualTo: uid)
+        .where('reportanteId', isEqualTo: uid)
         .limit(1)
         .get();
 
@@ -33,5 +33,17 @@ class ReportController {
     });
   }
 
-  
+  Future<bool> yaFueReportado(String helperId) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final existing = await FirebaseFirestore.instance
+        .collection('reportes')
+        .where('reportadoId', isEqualTo: helperId)
+        .where('reportanteId', isEqualTo: uid)
+        .limit(1)
+        .get();
+
+    return existing.docs.isNotEmpty;
+  }
+ 
 }

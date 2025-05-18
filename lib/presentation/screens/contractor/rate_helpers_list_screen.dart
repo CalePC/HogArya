@@ -262,7 +262,7 @@ class _RateHelpersListScreenState extends State<RateHelpersListScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 FutureBuilder<bool>(
-                                  future: controller.yaFueReportado(helperId),
+                                  future: reportController.yaFueReportado(helperId),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
                                       return const CircularProgressIndicator();
