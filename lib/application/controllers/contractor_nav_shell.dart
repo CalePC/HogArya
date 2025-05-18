@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hogarya/presentation/screens/contractor/contractor_resume_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/daily_resume_screen.dart';
 import 'package:hogarya/presentation/screens/contractor/desired_profiles_screen.dart';
 import 'package:hogarya/presentation/screens/contractor/my_helpers_screen.dart';
 
@@ -15,7 +15,7 @@ class _ContractorNavShellState extends State<ContractorNavShell> {
 
   final List<Widget> _pages = const [
     DesiredProfilesScreen(),
-    ContractorResumeScreen(),
+    DailyResumeScreen(),
     MyHelpersScreen(),
   ];
 

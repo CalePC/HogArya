@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'desired_profiles_screen.dart';
-import 'contractor_resume_screen.dart';
+import 'daily_resume_screen.dart';
 import 'my_helpers_screen.dart';
 
 class ContractorHomeScreen extends StatefulWidget {
@@ -15,7 +15,7 @@ class _ContractorHomeScreenState extends State<ContractorHomeScreen> {
 
   final List<Widget> _screens = const [
     DesiredProfilesScreen(),
-    ContractorResumeScreen(),
+    DailyResumeScreen(),
     MyHelpersScreen(),
   ];
 

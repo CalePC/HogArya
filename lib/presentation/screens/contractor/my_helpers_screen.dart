@@ -117,7 +117,7 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: const Color.fromRGBO(221, 242, 255, 1),
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: const [
                                 BoxShadow(
@@ -130,10 +130,16 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                             child: Column(
                               children: [
                                 CircleAvatar(
-                                  radius: 30,
+                                  radius: 50,
                                   backgroundColor: Colors.blue.shade100,
-                                  child: const Icon(Icons.person, size: 40),
+                                  backgroundImage: ayudante['helper']?['photoUrl'] != null && ayudante['helper']['photoUrl'].toString().isNotEmpty
+                                      ? NetworkImage(ayudante['helper']['photoUrl'])
+                                      : null,
+                                  child: ayudante['helper']?['photoUrl'] == null || ayudante['helper']['photoUrl'].toString().isEmpty
+                                      ? const Icon(Icons.person, size: 30, color: Colors.white)
+                                      : null,
                                 ),
+
                                 const SizedBox(height: 12),
                                 Text(
                                   nombre,
@@ -144,7 +150,7 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  "Solicitud: ${solicitud?['periodicidad_pago'] ?? 'No disponible'}",
+                                  "Periodicidad: ${solicitud?['periodicidad_pago'] ?? 'No disponible'}",
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 const SizedBox(height: 8),
@@ -156,8 +162,8 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                                       onPressed: () =>
                                           _despedirAyudante(postulacionId),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        foregroundColor: Colors.white,
+                                        backgroundColor: const Color.fromRGBO(255, 123, 123, 1),
+                                        foregroundColor: Colors.black,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(20),
                                         ),
@@ -168,8 +174,8 @@ class _MyHelpersScreenState extends State<MyHelpersScreen> {
                                       onPressed: () =>
                                           _administrarTareas(helperId),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        foregroundColor: Colors.white,
+                                        backgroundColor: const Color.fromRGBO(123, 216, 255, 1),
+                                        foregroundColor: Colors.black,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(20),
                                         ),

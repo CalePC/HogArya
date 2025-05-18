@@ -7,7 +7,7 @@ import 'package:hogarya/presentation/screens/profile_screen.dart';
 import '../../../application/controllers/desired_profiles_controller.dart';
 import '../../widgets/custom_header.dart';
 import 'add_job_profile_screen.dart';
-import 'contractor_resume_screen.dart';
+import 'daily_resume_screen.dart';
 import 'my_helpers_screen.dart';
 
 
@@ -150,7 +150,7 @@ class _DesiredProfilesScreenState extends State<DesiredProfilesScreen> {
           setState(() => _currentIndex = index);
           final screens = [
             const DesiredProfilesScreen(),
-            const ContractorResumeScreen(),
+            const DailyResumeScreen(),
             const MyHelpersScreen(),
           ];
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => screens[index]));

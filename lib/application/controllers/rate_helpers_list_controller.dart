@@ -24,13 +24,27 @@ class RateHelpersListController {
       if (!helperDoc.exists) continue;
 
       final helper = helperDoc.data();
-      result.add({
-        'helperId': helperId,
-        'nombre': helper?['nombre'] ?? 'Sin nombre',
-        'calificacionPromedio': helper?['calificacionPromedio'],
-      });
+     result.add({
+      'helperId': helperId,
+      'nombre': helper?['nombre'] ?? 'Sin nombre',
+      'calificacionPromedio': helper?['calificacionPromedio'],
+      'photoUrl': helper?['photoUrl'] ?? '', 
+    });
     }
 
     return result;
+  }
+  
+  Future<bool> yaFueReportado(String helperId) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final existing = await FirebaseFirestore.instance
+        .collection('reportes')
+        .where('reportadoId', isEqualTo: helperId)
+        .where('reportanteId', isEqualTo: uid)
+        .limit(1)
+        .get();
+
+    return existing.docs.isNotEmpty;
   }
 }

@@ -248,11 +248,17 @@ class _HelpersScreenState extends State<HelpersScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.white,
-                        child: Icon(Icons.person, size: 40),
-                      ),
+                      CircleAvatar(
+                      radius: 70,
+                      backgroundColor: Colors.white,
+                      backgroundImage: contractor['photoUrl'] != null && contractor['photoUrl'].toString().isNotEmpty
+                          ? NetworkImage(contractor['photoUrl'])
+                          : null,
+                      child: contractor['photoUrl'] == null || contractor['photoUrl'].toString().isEmpty
+                          ? const Icon(Icons.person, size: 40)
+                          : null,
+                    ),
+
                       const SizedBox(height: 12),
                       Text(contractor['nombre'] ?? 'Sin nombre',
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),

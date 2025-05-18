@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/contractor/desired_profiles_screen.dart';
-import '../screens/contractor/contractor_resume_screen.dart';
+import '../screens/contractor/daily_resume_screen.dart';
 import '../screens/contractor/my_helpers_screen.dart';
 
 class PersistentBottomNav extends StatelessWidget {
@@ -22,7 +22,7 @@ class PersistentBottomNav extends StatelessWidget {
           if (index == currentIndex) return;
           final screens = [
             const DesiredProfilesScreen(),
-            const ContractorResumeScreen(),
+            const DailyResumeScreen(),
             const MyHelpersScreen(),
           ];
           Navigator.pushReplacement(

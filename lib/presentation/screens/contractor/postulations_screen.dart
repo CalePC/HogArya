@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hogarya/application/controllers/desired_profiles_controller.dart';
-import 'package:hogarya/presentation/screens/contractor/contractor_resume_screen.dart';
+import 'package:hogarya/presentation/screens/contractor/daily_resume_screen.dart';
 import 'package:hogarya/presentation/screens/contractor/desired_profiles_screen.dart';
 import 'package:hogarya/presentation/screens/contractor/my_helpers_screen.dart';
 import 'package:hogarya/presentation/widgets/custom_header.dart';
@@ -30,7 +30,7 @@ class _PostulacionesScreenState extends State<PostulacionesScreen> {
 
     final screens = [
       const DesiredProfilesScreen(),
-      const ContractorResumeScreen(),
+      const DailyResumeScreen(),
       const MyHelpersScreen(),
     ];
 
@@ -96,8 +96,27 @@ class _PostulacionesScreenState extends State<PostulacionesScreen> {
               ),
             ],
           ),
-        ],
+          Positioned(
+            bottom: 76,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 10,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Color.fromRGBO(52, 52, 52, 0.2),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],  
       ),
+      
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -123,17 +142,29 @@ class _PostulacionCard extends StatelessWidget {
 
   const _PostulacionCard({
     required this.post,
-    required this.solicitudId,
     required this.controller,
+    required this.solicitudId,
     required this.onSuccess,
   });
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: controller.getHelperName(post['helperId']),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: controller.getHelperData(post['helperId']),
       builder: (context, snapshot) {
-        final name = snapshot.data ?? "Sin nombre";
+        if (!snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(8),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final helper = snapshot.data!;
+        final name = helper['nombre'] ?? "Sin nombre";
+        final photo = helper['photoUrl'] ?? '';
+        final edad = helper['edad']?.toString() ?? 'N/D';
+        final rating = (helper['calificacionPromedio'] ?? 0).toStringAsFixed(1);
+
         final contraoferta = post['contraoferta'];
         final subtitle = contraoferta == null || contraoferta == 0
             ? "Acepta los términos"
@@ -148,10 +179,13 @@ class _PostulacionCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const CircleAvatar(
-                radius: 28,
+              CircleAvatar(
+                radius: 38,
+                backgroundImage: photo.isNotEmpty ? NetworkImage(photo) : null,
                 backgroundColor: Colors.grey,
-                child: Icon(Icons.person, size: 30, color: Colors.white),
+                child: photo.isEmpty
+                    ? const Icon(Icons.person, size: 30, color: Colors.white)
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -161,6 +195,9 @@ class _PostulacionCard extends StatelessWidget {
                     Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     const SizedBox(height: 4),
                     Text(subtitle, style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text("Edad: $edad años", style: const TextStyle(fontSize: 14)),
+                    Text("Calificación: ⭐ $rating", style: const TextStyle(fontSize: 14)),
                   ],
                 ),
               ),
@@ -173,7 +210,6 @@ class _PostulacionCard extends StatelessWidget {
                     solicitudId: solicitudId,
                   );
                   onSuccess();
-                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Postulación aceptada')),
                   );
@@ -184,6 +220,8 @@ class _PostulacionCard extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  minimumSize: const Size(80, 48),
                 ),
                 child: const Text("Aceptar"),
               ),
@@ -194,3 +232,4 @@ class _PostulacionCard extends StatelessWidget {
     );
   }
 }
+

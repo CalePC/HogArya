@@ -69,9 +69,8 @@ class DesiredProfilesController {
     });
   }
 
-  Future<String?> getHelperName(String helperId) async {
-    final doc = await _db.collection('usuarios').doc(helperId).get();
-    if (!doc.exists) return null;
-    return doc['nombre'];
+  Future<Map<String, dynamic>?> getHelperData(String helperId) async {
+    final doc = await FirebaseFirestore.instance.collection('usuarios').doc(helperId).get();
+    return doc.exists ? doc.data() : null;
   }
 }

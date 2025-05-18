@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "108366491001",
-    "project_id": "house-help-app",
-    "storage_bucket": "house-help-app.firebasestorage.app"
+    "project_number": "149374817902",
+    "project_id": "hogarya-e8f89",
+    "storage_bucket": "hogarya-e8f89.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:108366491001:android:189af1e1ba27eb627bd3a8",
+        "mobilesdk_app_id": "1:149374817902:android:d7ab26fd66d5989abdb87f",
         "android_client_info": {
-          "package_name": "com.example.house_help"
+          "package_name": "com.hogarya.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDR2SxFJb2VrKqORORFVWJkQERNbc6Di68"
+          "current_key": "AIzaSyDaY7XrcHwFI2-TVNW78b_Qroyo0Fyhq94"
         }
       ],
       "services": {
